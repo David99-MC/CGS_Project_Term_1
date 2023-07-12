@@ -64,12 +64,15 @@ protected:
 
 	//void Jump(const FInputActionValue& Value);
 
-protected:
+public:
 	UPROPERTY(EditAnywhere, category = Movement)
-	float JogSpeed = 337.5;
+	float JogSpeed = 400.f;
 
 	UPROPERTY(EditAnywhere, category = Movement)
-	float SprintSpeed = 562.5;
+	float SprintSpeed = 650.f;
+
+	UPROPERTY(EditAnywhere, category = Movement)
+	float CrouchSpeed = 300.f;
 
 public:
 	bool bIsSprinting;

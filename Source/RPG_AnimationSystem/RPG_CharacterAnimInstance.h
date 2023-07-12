@@ -22,21 +22,20 @@ protected:
 private:
 	ARPG_Character* CharacterOwner;
 
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
 	UCharacterMovementComponent* CharMovementComp;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	bool bSprinting;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	float Speed;
-
-	// Exposed to blueprint for it to use Calculate Direction node
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	FVector CharacterVelocity;
-
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	bool bShouldMove;
+	float GroundSpeed;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	bool bIsFalling;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool bIsCrouched;
+
+
 };

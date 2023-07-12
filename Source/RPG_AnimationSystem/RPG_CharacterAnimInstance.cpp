@@ -7,28 +7,21 @@
 
 void URPG_CharacterAnimInstance::NativeInitializeAnimation()
 {
-	CharacterOwner = Cast<ARPG_Character>(TryGetPawnOwner());
+	CharacterOwner = Cast<ARPG_Character>(GetOwningActor());
 }
 
 void URPG_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	if (CharacterOwner == nullptr) return;
-	
+
 	CharMovementComp = CharacterOwner->GetCharacterMovement();
 
-	if (CharMovementComp == nullptr) return;
-
-	CharacterVelocity = CharMovementComp->Velocity;
-	Speed = CharMovementComp->Velocity.Size2D();
-
-	if (CharMovementComp->GetCurrentAcceleration().Size2D() != 0 && Speed > 5.f)
-	{
-		bShouldMove = true;
-	}
-	bShouldMove = false;
+	GroundSpeed = CharMovementComp->Velocity.Size2D();
 
 	bSprinting = CharacterOwner->bIsSprinting;
 
 	bIsFalling = CharMovementComp->IsFalling();
+
+	bIsCrouched = CharacterOwner->bIsCrouched;
 	
 }

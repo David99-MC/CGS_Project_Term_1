@@ -28,14 +28,17 @@ ARPG_Character::ARPG_Character()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
-	//GetCharacterMovement()->bUseControllerDesiredRotation = true;
-	//GetCharacterMovement()->bIgnoreBaseRotation = true;
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.7f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->bIgnoreBaseRotation = true;
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Enable Crouch ability
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 
-	//Let the Controller Rotation just affects the camera
-	bUseControllerRotationPitch = false;
+	/*bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
+	bUseControllerRotationRoll = false;*/
 }
 
 // Called when the game starts or when spawned
@@ -44,7 +47,7 @@ void ARPG_Character::BeginPlay()
 	Super::BeginPlay();
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* LocalPlayerSubsystem = PlayerController->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		if (UEnhancedInputLocalPlayerSubsystem* LocalPlayerSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			LocalPlayerSubsystem->AddMappingContext(LocomotionMappingContext, 0);
 		}
