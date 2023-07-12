@@ -20,6 +20,8 @@ ARPG_Character::ARPG_Character()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->TargetArmLength = 450.f;
+	CameraBoom->bEnableCameraLag = true; // Smoothly move the camera to the half eye height when start crouching
+	CameraBoom->CameraLagSpeed = 5.f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
