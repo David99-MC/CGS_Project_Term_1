@@ -30,8 +30,9 @@ ARPG_Character::ARPG_Character()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
-	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.7f;
+	GetCharacterMovement()->JumpZVelocity = 460.f;
+	GetCharacterMovement()->AirControl = 0.1f;
+	GetCharacterMovement()->GravityScale = 1.5f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bIgnoreBaseRotation = true;
@@ -107,23 +108,25 @@ void ARPG_Character::Sprint(const FInputActionValue& Value)
 	if (bIsSprinting)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		bUseControllerRotationYaw = false;
 	}
 	else
 	{
 		GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+		bUseControllerRotationYaw = true;
 	}
 
 }
 
 void ARPG_Character::CrouchButtonPressed(const FInputActionValue& Value)
 {
-	if (bIsCrouched)
+	if (!bIsCrouched && !GetCharacterMovement()->IsFalling())
 	{
-		UnCrouch();
+		Crouch();
 	}
 	else
 	{
-		Crouch();
+		UnCrouch();
 	}
 }
 
