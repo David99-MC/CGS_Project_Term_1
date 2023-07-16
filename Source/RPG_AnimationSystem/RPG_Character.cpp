@@ -39,9 +39,6 @@ ARPG_Character::ARPG_Character()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Enable Crouch ability
 	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 
-	/*bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;*/
 }
 
 // Called when the game starts or when spawned
