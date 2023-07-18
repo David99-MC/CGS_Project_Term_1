@@ -12,17 +12,12 @@ class UCameraComponent;
 class USpringArmComponent;
 class UInputMappingContext;
 class UInputAction;
+class URPG_CharacterMovementComponent;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
 {
 	GENERATED_BODY()
-
-	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* Camera;
-
-	UPROPERTY(VisibleAnywhere)
-	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(EditAnywhere, category = Input)
 	UInputMappingContext* LocomotionMappingContext;
@@ -42,8 +37,11 @@ class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
 	UPROPERTY(EditAnywhere, category = Input)
 	UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, category = Input)
+	UInputAction* ClimbAction;
+
 public:
-	ARPG_Character();
+	ARPG_Character(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -60,11 +58,23 @@ protected:
 
 	void Sprint(const FInputActionValue& Value);
 
-	void CrouchButtonPressed(const FInputActionValue& Value);
+	void ToggleCrouch(const FInputActionValue& Value);
 
-	//void Jump(const FInputActionValue& Value);
+	void Climb(const FInputActionValue& Value);
 
 public:
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere)
+	USpringArmComponent* CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Movement)
+	URPG_CharacterMovementComponent* RPG_CharacterMovementComponent;
+
+
+
+	/** Locomotion Variables */
 	UPROPERTY(EditAnywhere, category = Movement)
 	float JogSpeed = 400.f;
 
@@ -72,9 +82,8 @@ public:
 	float SprintSpeed = 650.f;
 
 	UPROPERTY(EditAnywhere, category = Movement)
-	float CrouchSpeed = 300.f;
+	float CrouchSpeed = 250.f;
 
-public:
 	bool bIsSprinting;
 
 
