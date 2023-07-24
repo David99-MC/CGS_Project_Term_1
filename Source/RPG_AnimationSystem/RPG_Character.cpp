@@ -4,11 +4,13 @@
 #include "RPG_Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/PlayerController.h"
+#include "RPG_PlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "RPG_CharacterMovementComponent.h"
 #include "Engine/Engine.h"
+#include "RPG_AnimationSystemGameModeBase.h"
+#include "GameFrameWork/DamageType.h"
 
 
 // Sets default values
@@ -85,6 +87,42 @@ void ARPG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ARPG_Character::ToggleCrouch);
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ARPG_Character::Climb);
+	}
+
+}
+
+void ARPG_Character::Destroyed()
+{
+	Super::Destroyed();
+	GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, TEXT("Player Died"));
+	
+	if (UWorld* World = GetWorld())
+	{
+		if (ARPG_AnimationSystemGameModeBase* GameMode = Cast<ARPG_AnimationSystemGameModeBase>(World->GetAuthGameMode()))
+		{
+			GameMode->GetOnPlayerDied().Broadcast(this);
+		}
+	}
+}
+
+void ARPG_Character::FellOutOfWorld(const UDamageType& DmgType)
+{
+	/*if (APlayerController* PlayerController = GetController<APlayerController>())
+	{
+		PlayerController->RestartLevel();
+	}*/
+
+	Destroy();
+
+	if (UWorld* World = GetWorld())
+	{
+		if (ARPG_AnimationSystemGameModeBase* GameMode = Cast<ARPG_AnimationSystemGameModeBase>(World->GetAuthGameMode()))
+		{
+			if (ARPG_PlayerController* PlayerController = GetController<ARPG_PlayerController>())
+			{
+				GameMode->RestartPlayer(PlayerController);
+			}
+		}
 	}
 
 }

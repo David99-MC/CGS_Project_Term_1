@@ -13,6 +13,7 @@ class USpringArmComponent;
 class UInputMappingContext;
 class UInputAction;
 class URPG_CharacterMovementComponent;
+class UDamageType;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
@@ -46,12 +47,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
+	virtual void Destroyed();
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// Called when the Character fell below Z Kill
+	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 
-protected:
 	void Move(const FInputActionValue& Value);
 
 	void Look(const FInputActionValue& Value);
@@ -61,6 +61,11 @@ protected:
 	void ToggleCrouch(const FInputActionValue& Value);
 
 	void Climb(const FInputActionValue& Value);
+
+public:	
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 	UPROPERTY(VisibleAnywhere)
