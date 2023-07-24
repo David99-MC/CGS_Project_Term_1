@@ -2,14 +2,16 @@
 
 
 #include "RPG_Character.h"
+#include "Engine/Engine.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "RPG_PlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "RPG_CharacterMovementComponent.h"
-#include "Engine/Engine.h"
+
 #include "RPG_AnimationSystemGameModeBase.h"
+#include "GameFramework/PlayerController.h"
+
 #include "GameFrameWork/DamageType.h"
 
 
@@ -107,24 +109,19 @@ void ARPG_Character::Destroyed()
 
 void ARPG_Character::FellOutOfWorld(const UDamageType& DmgType)
 {
-	/*if (APlayerController* PlayerController = GetController<APlayerController>())
-	{
-		PlayerController->RestartLevel();
-	}*/
-
-	Destroy();
-
+	/*Destroy();
 	if (UWorld* World = GetWorld())
 	{
 		if (ARPG_AnimationSystemGameModeBase* GameMode = Cast<ARPG_AnimationSystemGameModeBase>(World->GetAuthGameMode()))
 		{
-			if (ARPG_PlayerController* PlayerController = GetController<ARPG_PlayerController>())
-			{
-				GameMode->RestartPlayer(PlayerController);
-			}
+			GameMode->RestartPlayer(Controller);
 		}
-	}
+	}*/
 
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		PlayerController->RestartLevel();
+	}
 }
 
 void ARPG_Character::Move(const FInputActionValue& Value)
