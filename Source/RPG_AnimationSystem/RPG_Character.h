@@ -14,6 +14,7 @@ class UInputMappingContext;
 class UInputAction;
 class URPG_CharacterMovementComponent;
 class UDamageType;
+class UHealthComponent;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
@@ -47,10 +48,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void Destroyed();
+	/*virtual void Destroyed() override;*/
 
 	// Called when the Character fell below Z Kill
 	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	void Move(const FInputActionValue& Value);
 
@@ -61,6 +64,8 @@ protected:
 	void ToggleCrouch(const FInputActionValue& Value);
 
 	void Climb(const FInputActionValue& Value);
+
+	void RespawnPlayer();
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -76,6 +81,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Movement)
 	URPG_CharacterMovementComponent* RPG_CharacterMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Stats)
+	UHealthComponent* HealthComponent;
 
 
 

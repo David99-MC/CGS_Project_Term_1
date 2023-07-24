@@ -14,6 +14,8 @@
 
 #include "GameFrameWork/DamageType.h"
 
+#include "HealthComponent.h"
+
 
 // Sets default values
 ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
@@ -46,6 +48,8 @@ ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->bIgnoreBaseRotation = true;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Enable Crouch ability
 	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 
 }
 
@@ -93,35 +97,9 @@ void ARPG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
-void ARPG_Character::Destroyed()
-{
-	Super::Destroyed();
-	GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, TEXT("Player Died"));
-	
-	if (UWorld* World = GetWorld())
-	{
-		if (ARPG_AnimationSystemGameModeBase* GameMode = Cast<ARPG_AnimationSystemGameModeBase>(World->GetAuthGameMode()))
-		{
-			GameMode->GetOnPlayerDied().Broadcast(this);
-		}
-	}
-}
-
 void ARPG_Character::FellOutOfWorld(const UDamageType& DmgType)
 {
-	/*Destroy();
-	if (UWorld* World = GetWorld())
-	{
-		if (ARPG_AnimationSystemGameModeBase* GameMode = Cast<ARPG_AnimationSystemGameModeBase>(World->GetAuthGameMode()))
-		{
-			GameMode->RestartPlayer(Controller);
-		}
-	}*/
-
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		PlayerController->RestartLevel();
-	}
+	RespawnPlayer();
 }
 
 void ARPG_Character::Move(const FInputActionValue& Value)
@@ -182,6 +160,31 @@ void ARPG_Character::Climb(const FInputActionValue& Value)
 	else 
 	{
 		RPG_CharacterMovementComponent->ToggleClimbing(true);
+	}
+}
+
+float ARPG_Character::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (HealthComponent == nullptr) return 0.f;
+
+	float DamageTaken = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	HealthComponent->TakeDamage(DamageTaken);
+	if (HealthComponent->IsDead())
+	{
+		RespawnPlayer();
+	}
+
+	return DamageTaken;
+}
+
+void ARPG_Character::RespawnPlayer()
+{
+	if (UWorld* World = GetWorld())
+	{
+		if (ARPG_AnimationSystemGameModeBase* GameMode = Cast<ARPG_AnimationSystemGameModeBase>(World->GetAuthGameMode()))
+		{
+			GameMode->RequestRespawnPlayer(this, Controller);
+		}
 	}
 }
 

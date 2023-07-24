@@ -14,26 +14,21 @@ void ARPG_AnimationSystemGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!OnPlayerDied.IsBound())
-	{
-		OnPlayerDied.AddDynamic(this, &ARPG_AnimationSystemGameModeBase::PlayerDied);
-	}
 }
 
-void ARPG_AnimationSystemGameModeBase::RestartPlayer(AController* NewPlayer)
+void ARPG_AnimationSystemGameModeBase::RequestRespawnPlayer(ACharacter* EliminatedCharacter, AController* EliminatedController)
 {
-	Super::RestartPlayer(NewPlayer);
+	if (EliminatedCharacter == nullptr || EliminatedController == nullptr) return;
+
+	EliminatedCharacter->Reset();
+	EliminatedCharacter->Destroy();
 
 	TArray<AActor*> PlayerStartLocations;
 	UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStartLocations);
 
-	RestartPlayerAtPlayerStart(NewPlayer, PlayerStartLocations[0]);
+	if (PlayerStartLocations.Num() != 0)
+	{
+		RestartPlayerAtPlayerStart(EliminatedController, PlayerStartLocations[0]);
+	}
 
-}
-
-void ARPG_AnimationSystemGameModeBase::PlayerDied(ACharacter* Character)
-{
-	GEngine->AddOnScreenDebugMessage(2, 2.f, FColor::Cyan, TEXT("Broadcasted from GameMode"));
-	ARPG_PlayerController* CharacterController = Cast<ARPG_PlayerController>(Character->GetController());
-	RestartPlayer(CharacterController);
 }
