@@ -19,8 +19,6 @@ void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
-	
 }
 
 

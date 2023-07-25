@@ -71,6 +71,10 @@ void ARPG_Character::BeginPlay()
 void ARPG_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (HealthComponent)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, FString::Printf(TEXT("Current Health: %f"), HealthComponent->GetHealth()));
+	}
 
 }
 

@@ -27,6 +27,8 @@ public:
 	void TakeDamage(float Damage);
 	bool IsDead();
 
+	FORCEINLINE float GetHealth() { return Health; }
+
 protected:
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;

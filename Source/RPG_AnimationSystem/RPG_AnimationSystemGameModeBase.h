@@ -17,7 +17,7 @@ class RPG_ANIMATIONSYSTEM_API ARPG_AnimationSystemGameModeBase : public AGameMod
 
 public:
 
-	// overriding RestartPlayer() on AGameModeBase class
+	// Calling RestartPlayerAtLocation() on AGameModeBase class
 	virtual void RequestRespawnPlayer(ACharacter* NewCharacter, AController* NewPlayer);
 
 protected:
