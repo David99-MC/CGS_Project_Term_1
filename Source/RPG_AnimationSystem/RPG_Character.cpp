@@ -15,6 +15,10 @@
 #include "GameFrameWork/DamageType.h"
 
 #include "HealthComponent.h"
+#include "Components/SphereComponent.h"
+
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -51,6 +55,10 @@ ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 
+	SphereTargetRange = CreateDefaultSubobject<USphereComponent>(TEXT("Target Range"));
+	SphereTargetRange->SetupAttachment(RootComponent);
+	SphereTargetRange->SetSphereRadius(500.f);
+
 }
 
 // Called when the game starts or when spawned
@@ -76,6 +84,18 @@ void ARPG_Character::Tick(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, FString::Printf(TEXT("Current Health: %f"), HealthComponent->GetHealth()));
 	}
 
+	if (TargetToFocus == nullptr || !bIsFocusing)
+	{
+		ToggleControlRotation(false);
+		return;
+	}
+
+	//FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetToFocus->GetActorLocation());
+	/*FRotator LookAtRotation = (TargetToFocus->GetActorLocation() - GetActorLocation()).Rotation();
+	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), LookAtRotation, DeltaTime, 10.f);
+	SetActorRotation(InterpRotation);
+	CameraBoom->SetWorldRotation(InterpRotation);*/
+	
 }
 
 // Called to bind functionality to input
@@ -97,8 +117,10 @@ void ARPG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ARPG_Character::ToggleCrouch);
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ARPG_Character::Climb);
+	
+		EnhancedInputComponent->BindAction(FocusAction, ETriggerEvent::Started, this, &ARPG_Character::Focus);
 	}
-
+	
 }
 
 void ARPG_Character::FellOutOfWorld(const UDamageType& DmgType)
@@ -151,6 +173,50 @@ void ARPG_Character::ToggleCrouch(const FInputActionValue& Value)
 	{
 		UnCrouch();
 	}
+}
+
+void ARPG_Character::Focus(const FInputActionValue& Value)
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors);
+
+	FString Info = FString::Printf(TEXT("Number of overlapping actors: %d"), OverlappingActors.Num());
+	GEngine->AddOnScreenDebugMessage(2, 2.f, FColor::Green, Info);
+
+	//TargetToFocus = FocusToTarget(OverlappingActors);
+
+}
+
+AActor* ARPG_Character::FocusToTarget(const TArray<AActor*>& OverlappingActors)
+{
+	if (OverlappingActors.IsEmpty())
+	{
+		return nullptr;
+	}
+
+	double MinDistance = FVector::Distance(GetActorLocation(), OverlappingActors[0]->GetActorLocation());
+	AActor* NearestActor = OverlappingActors[0];
+	for (int i = 1; i < OverlappingActors.Num(); i++)
+	{
+		double NewDistance = FVector::Distance(GetActorLocation(), OverlappingActors[i]->GetActorLocation());
+		if (NewDistance < MinDistance)
+		{
+			MinDistance = NewDistance;
+			NearestActor = OverlappingActors[i];
+		}
+	}
+
+	bIsFocusing = !bIsFocusing;
+	ToggleControlRotation(bIsFocusing);
+
+	return NearestActor;
+}
+
+void ARPG_Character::ToggleControlRotation(bool bShouldFocus)
+{
+	CameraBoom->bUsePawnControlRotation = bShouldFocus ? false : true;
+	CameraBoom->bInheritYaw = bShouldFocus ? false : true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = bShouldFocus ? false : true;
 }
 
 void ARPG_Character::Climb(const FInputActionValue& Value)

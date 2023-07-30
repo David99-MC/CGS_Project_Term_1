@@ -15,6 +15,7 @@ class UInputAction;
 class URPG_CharacterMovementComponent;
 class UDamageType;
 class UHealthComponent;
+class USphereComponent;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
@@ -42,6 +43,9 @@ class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
 	UPROPERTY(EditAnywhere, category = Input)
 	UInputAction* ClimbAction;
 
+	UPROPERTY(EditAnywhere, category = Input)
+	UInputAction* FocusAction;
+
 public:
 	ARPG_Character(const FObjectInitializer& ObjectInitializer);
 
@@ -65,6 +69,12 @@ protected:
 
 	void Climb(const FInputActionValue& Value);
 
+	void Focus(const FInputActionValue& Value);
+
+	AActor* FocusToTarget(const TArray<AActor*>& OverlappingActors);
+
+	void ToggleControlRotation(bool bShouldFocus);
+
 	void RespawnPlayer();
 
 public:	
@@ -84,6 +94,17 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Stats)
 	UHealthComponent* HealthComponent;
+
+
+	/* Targeting System */
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* SphereTargetRange;
+
+	bool bIsFocusing = false;
+
+	AActor* TargetToFocus = nullptr;
+
+	FLatentActionInfo LatentActionInfo;
 
 
 
