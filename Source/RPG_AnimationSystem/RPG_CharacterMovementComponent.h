@@ -23,9 +23,20 @@ class RPG_ANIMATIONSYSTEM_API URPG_CharacterMovementComponent : public UCharacte
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void DisplayMovementMode();
+
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
+
+	virtual float GetMaxSpeed() const override;
+
+	virtual float GetMaxAcceleration() const override;
+
+public:
 	TArray<FHitResult> DoCapsuleTraceMultiForObjects(const FVector& Start, const FVector& End, bool bShowDebugShape = false, bool bPersistentLine = false);
 
 	FHitResult DoLineTraceSingleForObject(const FVector& Start, const FVector& End, bool bShowDebugShape = false, bool bPersistentLine = false);
@@ -37,7 +48,7 @@ public:
 	bool TraceFromEyeHeight(float TraceDistance, float TraceStartOffset = 0.f);
 
 	// Checking if we're using our custom MovementMode and the CustomMovementMode is equal to our custom enum type (Climb Mode)
-	bool IsClimbing();
+	bool IsClimbing() const;
 
 	void ToggleClimbing(bool bEnableClimbing);
 
@@ -46,6 +57,10 @@ public:
 	void StartClimbing();
 
 	void StopClimbing();
+
+	void PhysClimb(float deltaTime, int32 Iterations);
+
+	void ProcessClimbableSurfaces();
 
 public:
 	// Configurable Climb variables
@@ -58,10 +73,25 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
 	float ClimbCapsuleTraceHalfHeight = 72.f;
 
-private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
+	float ClimbCapsuleTraceLength = 35.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
+	float MaxBreakClimbDeceleration = 400.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
+	float MaxClimbSpeed = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
+	float MaxClimbAcceleration = 300.f;
+
+private:
 	TArray<FHitResult> ClimbableSurfacesTraceHitResults;
 
 	FHitResult EyeHeightTraceHitResult;
+
+	FVector CurrentClimbableSurfaceLocation;
+
+	FVector CurrentClimbableSurfaceNormal;
 	
 };

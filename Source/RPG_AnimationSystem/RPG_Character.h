@@ -71,7 +71,7 @@ protected:
 
 	void Focus(const FInputActionValue& Value);
 
-	AActor* FocusToTarget(const TArray<AActor*>& OverlappingActors);
+	AActor* GetNearestOverlappingActor(const TArray<AActor*>& OverlappingActors);
 
 	void ToggleControlRotation(bool bShouldFocus);
 
@@ -119,6 +119,8 @@ public:
 	float CrouchSpeed = 250.f;
 
 	bool bIsSprinting;
+
+	bool bCanTurn = true;
 
 
 };

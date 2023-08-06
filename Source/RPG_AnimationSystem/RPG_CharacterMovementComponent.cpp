@@ -4,23 +4,156 @@
 #include "RPG_CharacterMovementComponent.h"
 #include "RPG_Character.h"
 #include "Engine/Engine.h"
+#include "Components/CapsuleComponent.h"
 
 void URPG_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	/*TraceClimbableSurfaces();
-	TraceFromEyeHeight(100.f);*/
+	//DisplayMovementMode();
+}
+
+void URPG_CharacterMovementComponent::DisplayMovementMode()
+{
+	FText MovementModeName;
+	UEnum::GetDisplayValueAsText(MovementMode, MovementModeName);
+
+	TEnumAsByte<ECustomMovementMode::Type> Byte = (ECustomMovementMode::Type)CustomMovementMode;
+	FText CustomMovemementModeName;
+	UEnum::GetDisplayValueAsText(Byte, CustomMovemementModeName);
+
+	FString CheckMovementModeName = FString::Printf(TEXT("MovementMode name: %s, CustomMovementMode name: %s"), *MovementModeName.ToString(), *CustomMovemementModeName.ToString());
+	GEngine->AddOnScreenDebugMessage(5, 2.f, FColor::Cyan, CheckMovementModeName);
+}
+
+void URPG_CharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	if (IsClimbing())
+	{
+		if (ARPG_Character* Player = Cast<ARPG_Character>(CharacterOwner))
+		{
+			Player->bCanTurn = false;
+			bOrientRotationToMovement = false;
+			bUseControllerDesiredRotation = false;
+			Player->bUseControllerRotationYaw = false;
+		}
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(44.f);
+	}
+
+	// Just Exit the Climbing State
+	if (PreviousMovementMode == EMovementMode::MOVE_Custom && PreviousCustomMode == ECustomMovementMode::MOVE_Climb)
+	{
+		if (ARPG_Character* Player = Cast<ARPG_Character>(CharacterOwner))
+		{
+			Player->bCanTurn = true;
+			bOrientRotationToMovement = true;
+			bUseControllerDesiredRotation = true;
+			Player->bUseControllerRotationYaw = true;
+		}
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(88.f);
+
+		StopMovementImmediately(); // cancel any excess movement from this state
+	}
+
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
+void URPG_CharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
+{
+	if (IsClimbing())
+	{
+		PhysClimb(deltaTime, Iterations);
+	}
+
+	Super::PhysCustom(deltaTime, Iterations);
+}
+
+void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iterations)
+{
+	if (deltaTime < MIN_TICK_TIME)
+	{
+		return;
+	}
+
+	/*Process all the climbable surfaces info*/
+	TraceClimbableSurfaces();
+	ProcessClimbableSurfaces();
+
+	/*Check if we should stop climbing*/
+
+
+	RestorePreAdditiveRootMotionVelocity();
+
+	if (!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+	{	//Define the max climb speed and acceleration
+		CalcVelocity(deltaTime, 0.f, true, MaxBreakClimbDeceleration);
+	}
+
+	ApplyRootMotionToVelocity(deltaTime);
+
+	FVector OldLocation = UpdatedComponent->GetComponentLocation();
+	const FVector Adjusted = Velocity * deltaTime;
+	FHitResult Hit(1.f);
+
+	//Handle climb rotation
+	SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit);
+
+	if (Hit.Time < 1.f)
+	{
+		//adjust and try again
+		HandleImpact(Hit, deltaTime, Adjusted);
+		SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
+	}
+
+	if (!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+	{
+		Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / deltaTime;
+	}
+
+	/*Snap movement to climbable surfaces*/
+}
+
+float URPG_CharacterMovementComponent::GetMaxSpeed() const
+{
+	if (!IsClimbing()) 
+		return Super::GetMaxSpeed();
+
+	return MaxClimbSpeed;
+}
+
+float URPG_CharacterMovementComponent::GetMaxAcceleration() const
+{
+	if (!IsClimbing())
+		return Super::GetMaxAcceleration();
+
+	return MaxClimbAcceleration;
+}
+
+void URPG_CharacterMovementComponent::ProcessClimbableSurfaces()
+{
+	CurrentClimbableSurfaceLocation = FVector::ZeroVector;
+	CurrentClimbableSurfaceNormal = FVector::ZeroVector;
+
+	if (ClimbableSurfacesTraceHitResults.IsEmpty()) return;
+
+	for (const FHitResult& HitResult : ClimbableSurfacesTraceHitResults)
+	{
+		CurrentClimbableSurfaceLocation += HitResult.ImpactPoint;
+		CurrentClimbableSurfaceNormal += HitResult.ImpactNormal;
+	}
+
+	CurrentClimbableSurfaceLocation /= ClimbableSurfacesTraceHitResults.Num();
+	CurrentClimbableSurfaceNormal = CurrentClimbableSurfaceNormal.GetSafeNormal();
 }
 
 bool URPG_CharacterMovementComponent::TraceClimbableSurfaces()
 {
-	FVector StartOffset = UpdatedComponent->GetForwardVector() * 50.f;
+	FVector StartOffset = UpdatedComponent->GetForwardVector() * ClimbCapsuleTraceLength;
 
 	FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
 	FVector End = Start + UpdatedComponent->GetForwardVector();
 
-	ClimbableSurfacesTraceHitResults = DoCapsuleTraceMultiForObjects(Start, End, true, true);
+	ClimbableSurfacesTraceHitResults = DoCapsuleTraceMultiForObjects(Start, End);
 
 	return !ClimbableSurfacesTraceHitResults.IsEmpty();
 }
@@ -64,7 +197,7 @@ bool URPG_CharacterMovementComponent::TraceFromEyeHeight(float TraceDistance, fl
 	FVector Start = ComponentLocation + EyeHeightOffset;
 	FVector End = Start + (UpdatedComponent->GetForwardVector() * TraceDistance);
 
-	EyeHeightTraceHitResult = DoLineTraceSingleForObject(Start, End, true, true);
+	EyeHeightTraceHitResult = DoLineTraceSingleForObject(Start, End);
 
 	return EyeHeightTraceHitResult.bBlockingHit;
 }
@@ -99,7 +232,7 @@ FHitResult URPG_CharacterMovementComponent::DoLineTraceSingleForObject(const FVe
 	return OutHitResult;
 }
 
-bool URPG_CharacterMovementComponent::IsClimbing()
+bool URPG_CharacterMovementComponent::IsClimbing() const
 {
 	return MovementMode == MOVE_Custom && CustomMovementMode == ECustomMovementMode::MOVE_Climb;
 }
@@ -111,12 +244,12 @@ void URPG_CharacterMovementComponent::ToggleClimbing(bool bEnableClimbing)
 		if (CanStartClimbing())
 		{
 			// Start Climbing
-			GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Green, TEXT("Can climb now"));
+			GEngine->AddOnScreenDebugMessage(3, 2.f, FColor::Green, TEXT("Can climb now"));
 			StartClimbing();
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, TEXT("Can NOT climb now"));
+			GEngine->AddOnScreenDebugMessage(3, 2.f, FColor::Red, TEXT("Can NOT climb now"));
 		}
 	}
 	else
@@ -124,6 +257,11 @@ void URPG_CharacterMovementComponent::ToggleClimbing(bool bEnableClimbing)
 		// Stop Climbing
 		StopClimbing();
 	}
+}
+
+bool URPG_CharacterMovementComponent::CanStartClimbing()
+{
+	return !IsFalling() && TraceClimbableSurfaces() && TraceFromEyeHeight(100.f);
 }
 
 void URPG_CharacterMovementComponent::StartClimbing()
@@ -134,9 +272,4 @@ void URPG_CharacterMovementComponent::StartClimbing()
 void URPG_CharacterMovementComponent::StopClimbing()
 {
 	SetMovementMode(EMovementMode::MOVE_Falling);
-}
-
-bool URPG_CharacterMovementComponent::CanStartClimbing()
-{
-	return !IsFalling() && TraceClimbableSurfaces() && TraceFromEyeHeight(100.f);
 }

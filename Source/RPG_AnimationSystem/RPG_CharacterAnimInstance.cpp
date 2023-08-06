@@ -23,5 +23,7 @@ void URPG_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsFalling = CharMovementComp->IsFalling();
 
 	bIsCrouched = CharacterOwner->bIsCrouched;
+
+	bCanTurnInPlace = CharacterOwner->bCanTurn;
 	
 }

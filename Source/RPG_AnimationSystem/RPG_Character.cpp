@@ -7,6 +7,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/CapsuleComponent.h"
+
 #include "RPG_CharacterMovementComponent.h"
 
 #include "RPG_AnimationSystemGameModeBase.h"
@@ -27,6 +29,7 @@ ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	GetCapsuleComponent()->InitCapsuleSize(26.f, 88.f);
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -41,17 +44,18 @@ ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 
 	RPG_CharacterMovementComponent = Cast<URPG_CharacterMovementComponent>(GetCharacterMovement());
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
-	GetCharacterMovement()->JumpZVelocity = 750.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->GravityScale = 1.75f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	GetCharacterMovement()->bUseControllerDesiredRotation = true;
-	GetCharacterMovement()->bIgnoreBaseRotation = true;
-	GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Enable Crouch ability
-	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	RPG_CharacterMovementComponent->bOrientRotationToMovement = true;
+	RPG_CharacterMovementComponent->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+	RPG_CharacterMovementComponent->bUseControllerDesiredRotation = true;
+	RPG_CharacterMovementComponent->bIgnoreBaseRotation = true;
+	RPG_CharacterMovementComponent->MaxWalkSpeed = JogSpeed;
+	RPG_CharacterMovementComponent->JumpZVelocity = 750.f;
+	RPG_CharacterMovementComponent->AirControl = 0.35f;
+	RPG_CharacterMovementComponent->GravityScale = 1.75f;
+	RPG_CharacterMovementComponent->BrakingDecelerationWalking = 2000.f;
+
+	RPG_CharacterMovementComponent->NavAgentProps.bCanCrouch = true; // Enable Crouch ability
+	RPG_CharacterMovementComponent->MaxWalkSpeedCrouched = CrouchSpeed;
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 
@@ -83,13 +87,7 @@ void ARPG_Character::Tick(float DeltaTime)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, FString::Printf(TEXT("Current Health: %f"), HealthComponent->GetHealth()));
 	}
-
-	if (TargetToFocus == nullptr || !bIsFocusing)
-	{
-		ToggleControlRotation(false);
-		return;
-	}
-
+	
 	//FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetToFocus->GetActorLocation());
 	/*FRotator LookAtRotation = (TargetToFocus->GetActorLocation() - GetActorLocation()).Rotation();
 	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), LookAtRotation, DeltaTime, 10.f);
@@ -144,8 +142,8 @@ void ARPG_Character::Move(const FInputActionValue& Value)
 void ARPG_Character::Look(const FInputActionValue& Value)
 {
 	FVector2d LookDirection = Value.Get<FVector2d>();
-	AddControllerYawInput(LookDirection.X);
 	AddControllerPitchInput(LookDirection.Y);
+	AddControllerYawInput(LookDirection.X);
 }
 
 void ARPG_Character::Sprint(const FInputActionValue& Value)
@@ -183,11 +181,11 @@ void ARPG_Character::Focus(const FInputActionValue& Value)
 	FString Info = FString::Printf(TEXT("Number of overlapping actors: %d"), OverlappingActors.Num());
 	GEngine->AddOnScreenDebugMessage(2, 2.f, FColor::Green, Info);
 
-	//TargetToFocus = FocusToTarget(OverlappingActors);
+	//TargetToFocus = GetNearestOverlappingActor(OverlappingActors);
 
 }
 
-AActor* ARPG_Character::FocusToTarget(const TArray<AActor*>& OverlappingActors)
+AActor* ARPG_Character::GetNearestOverlappingActor(const TArray<AActor*>& OverlappingActors)
 {
 	if (OverlappingActors.IsEmpty())
 	{
