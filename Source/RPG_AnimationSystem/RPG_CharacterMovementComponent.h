@@ -59,8 +59,15 @@ public:
 	void StopClimbing();
 
 	void PhysClimb(float deltaTime, int32 Iterations);
-
 	void ProcessClimbableSurfaces();
+	
+	/* 
+		We need FQuat instead of FRotator because SafeMoveUpdatedComponent()
+		requires an FQuat for its parameter
+	*/
+	FQuat GetClimbRotation(float DeltaTime); 
+
+	void SnapMovementToClimbableSurfaces(float DeltaTime);
 
 public:
 	// Configurable Climb variables
@@ -80,7 +87,7 @@ public:
 	float MaxBreakClimbDeceleration = 400.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
-	float MaxClimbSpeed = 100.f;
+	float MaxClimbSpeed = 100.f; // Use when snapping movement to the surface
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
 	float MaxClimbAcceleration = 300.f;

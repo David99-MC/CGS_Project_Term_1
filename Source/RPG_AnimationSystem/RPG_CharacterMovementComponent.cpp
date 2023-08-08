@@ -79,7 +79,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	TraceClimbableSurfaces();
 	ProcessClimbableSurfaces();
 
-	/*Check if we should stop climbing*/
+	/*TODO: Check if we should stop climbing*/
 
 
 	RestorePreAdditiveRootMotionVelocity();
@@ -96,7 +96,8 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	FHitResult Hit(1.f);
 
 	//Handle climb rotation
-	SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit);
+	FQuat ClimbRotation = GetClimbRotation(deltaTime);
+	SafeMoveUpdatedComponent(Adjusted, ClimbRotation, true, Hit);
 
 	if (Hit.Time < 1.f)
 	{
@@ -111,6 +112,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	}
 
 	/*Snap movement to climbable surfaces*/
+	SnapMovementToClimbableSurfaces(deltaTime);
 }
 
 float URPG_CharacterMovementComponent::GetMaxSpeed() const
@@ -144,6 +146,41 @@ void URPG_CharacterMovementComponent::ProcessClimbableSurfaces()
 
 	CurrentClimbableSurfaceLocation /= ClimbableSurfacesTraceHitResults.Num();
 	CurrentClimbableSurfaceNormal = CurrentClimbableSurfaceNormal.GetSafeNormal();
+}
+
+FQuat URPG_CharacterMovementComponent::GetClimbRotation(float DeltaTime)
+{
+	FQuat CurrentQuat = UpdatedComponent->GetComponentQuat();
+
+	if (HasAnimRootMotion() || CurrentRootMotion.HasOverrideVelocity())
+	{
+		// Let the RootMotion Animation handles the physics
+		return CurrentQuat;
+	}
+
+	// Inverse the CurrentClimbableSurfaceNormal since we want a rotation that face towards the surface
+	FQuat TargetQuat = FRotationMatrix::MakeFromX(-CurrentClimbableSurfaceNormal).ToQuat();
+
+	return FMath::QInterpTo(CurrentQuat, TargetQuat, DeltaTime, 5.f); // could be configurable
+
+}
+
+void URPG_CharacterMovementComponent::SnapMovementToClimbableSurfaces(float DeltaTime)
+{
+	FVector ComponentForward = UpdatedComponent->GetForwardVector();
+	FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
+
+	FVector ProjectedCharacterToSurface =
+		(CurrentClimbableSurfaceLocation - ComponentLocation).ProjectOnTo(ComponentForward);
+
+	// Inverse the CurrentClimbableSurfaceNormal since we to snap to its oppsite direction, 
+	// which points towards the surface
+	FVector SnapVector = -CurrentClimbableSurfaceNormal * ProjectedCharacterToSurface.Length();
+
+	UpdatedComponent->MoveComponent(
+		SnapVector * DeltaTime * MaxClimbSpeed, 
+		UpdatedComponent->GetComponentQuat(), 
+		true);
 }
 
 bool URPG_CharacterMovementComponent::TraceClimbableSurfaces()
