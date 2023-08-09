@@ -61,6 +61,10 @@ protected:
 
 	void Move(const FInputActionValue& Value);
 
+	void HandleGroundMovement(const FInputActionValue& Value);
+
+	void HandleClimbMovement(const FInputActionValue& Value);
+
 	void Look(const FInputActionValue& Value);
 
 	void Sprint(const FInputActionValue& Value);

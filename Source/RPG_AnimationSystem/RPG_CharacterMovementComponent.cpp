@@ -52,6 +52,10 @@ void URPG_CharacterMovementComponent::OnMovementModeChanged(EMovementMode Previo
 		}
 		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(88.f);
 
+		FRotator DirtyRotation = UpdatedComponent->GetComponentRotation();
+		FRotator CleanRotation = FRotator(0.f, DirtyRotation.Yaw, 0.f);
+		UpdatedComponent->SetRelativeRotation(CleanRotation);
+
 		StopMovementImmediately(); // cancel any excess movement from this state
 	}
 
@@ -161,7 +165,7 @@ FQuat URPG_CharacterMovementComponent::GetClimbRotation(float DeltaTime)
 	// Inverse the CurrentClimbableSurfaceNormal since we want a rotation that face towards the surface
 	FQuat TargetQuat = FRotationMatrix::MakeFromX(-CurrentClimbableSurfaceNormal).ToQuat();
 
-	return FMath::QInterpTo(CurrentQuat, TargetQuat, DeltaTime, 5.f); // could be configurable
+	return FMath::QInterpTo(CurrentQuat, TargetQuat, DeltaTime, 5.f); // InterpSpeed could be configurable
 
 }
 

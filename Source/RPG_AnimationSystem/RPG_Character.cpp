@@ -88,12 +88,6 @@ void ARPG_Character::Tick(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Red, FString::Printf(TEXT("Current Health: %f"), HealthComponent->GetHealth()));
 	}
 	
-	//FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetToFocus->GetActorLocation());
-	/*FRotator LookAtRotation = (TargetToFocus->GetActorLocation() - GetActorLocation()).Rotation();
-	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), LookAtRotation, DeltaTime, 10.f);
-	SetActorRotation(InterpRotation);
-	CameraBoom->SetWorldRotation(InterpRotation);*/
-	
 }
 
 // Called to bind functionality to input
@@ -128,15 +122,49 @@ void ARPG_Character::FellOutOfWorld(const UDamageType& DmgType)
 
 void ARPG_Character::Move(const FInputActionValue& Value)
 {
+	if (RPG_CharacterMovementComponent == nullptr) return;
+
+	if (RPG_CharacterMovementComponent->IsClimbing())
+	{
+		HandleClimbMovement(Value);
+	}
+	else
+	{
+		HandleGroundMovement(Value);
+	}
+}
+
+void ARPG_Character::HandleGroundMovement(const FInputActionValue& Value)
+{
 	FVector2d MovementVector = Value.Get<FVector2D>();
 
-	// Get the forward vector from controller's rotation
+	// Get the forward and right vector from controller's rotation
 	FRotator ControlRotationYaw(0.f, GetControlRotation().Yaw, 0.f);
 	FVector ForwardVector = FRotationMatrix(ControlRotationYaw).GetUnitAxis(EAxis::X);
 	FVector RightVector = FRotationMatrix(ControlRotationYaw).GetUnitAxis(EAxis::Y);
 
 	AddMovementInput(ForwardVector, MovementVector.Y); // Move forward
 	AddMovementInput(RightVector, MovementVector.X); // Move right
+}
+
+void ARPG_Character::HandleClimbMovement(const FInputActionValue& Value)
+{
+	FVector2d MovementVector = Value.Get<FVector2D>();
+
+	// Right (Left in Unreal) hand rule when using CrossProduct to determine the direction
+	// Forward vector means climbing up/down
+	FVector ForwardVector = FVector::CrossProduct(
+		-RPG_CharacterMovementComponent->GetClimbableSurfaceNormal(),
+		GetActorRightVector()
+	);
+	// Right vector means climbing left/right
+	FVector RightVector = FVector::CrossProduct(
+		-RPG_CharacterMovementComponent->GetClimbableSurfaceNormal(),
+		-GetActorUpVector()
+	);
+
+	AddMovementInput(ForwardVector, MovementVector.Y);
+	AddMovementInput(RightVector, MovementVector.X); 
 }
 
 void ARPG_Character::Look(const FInputActionValue& Value)
@@ -148,6 +176,9 @@ void ARPG_Character::Look(const FInputActionValue& Value)
 
 void ARPG_Character::Sprint(const FInputActionValue& Value)
 {
+	if (RPG_CharacterMovementComponent && RPG_CharacterMovementComponent->IsClimbing())
+		return;
+
 	bIsSprinting = Value.Get<bool>();
 	if (bIsSprinting)
 	{

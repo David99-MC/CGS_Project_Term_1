@@ -59,6 +59,7 @@ public:
 	void StopClimbing();
 
 	void PhysClimb(float deltaTime, int32 Iterations);
+
 	void ProcessClimbableSurfaces();
 	
 	/* 
@@ -66,6 +67,8 @@ public:
 		requires an FQuat for its parameter
 	*/
 	FQuat GetClimbRotation(float DeltaTime); 
+
+	FORCEINLINE FVector GetClimbableSurfaceNormal() { return CurrentClimbableSurfaceNormal; }
 
 	void SnapMovementToClimbableSurfaces(float DeltaTime);
 
