@@ -83,8 +83,11 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	TraceClimbableSurfaces();
 	ProcessClimbableSurfaces();
 
-	/*TODO: Check if we should stop climbing*/
-
+	/*Check if we should stop climbing*/
+	if (ShouldStopClimbing())
+	{
+		StopClimbing();
+	}
 
 	RestorePreAdditiveRootMotionVelocity();
 
@@ -150,6 +153,16 @@ void URPG_CharacterMovementComponent::ProcessClimbableSurfaces()
 
 	CurrentClimbableSurfaceLocation /= ClimbableSurfacesTraceHitResults.Num();
 	CurrentClimbableSurfaceNormal = CurrentClimbableSurfaceNormal.GetSafeNormal();
+}
+
+bool URPG_CharacterMovementComponent::ShouldStopClimbing()
+{
+	if (ClimbableSurfacesTraceHitResults.IsEmpty()) return true;
+
+	float DotResult = FVector::DotProduct(CurrentClimbableSurfaceNormal, FVector::UpVector);
+	float DeltaDegree = FMath::RadiansToDegrees(FMath::Acos(DotResult)); //Acos() returns radian 
+
+	return DeltaDegree <= StopClimbingDegree;
 }
 
 FQuat URPG_CharacterMovementComponent::GetClimbRotation(float DeltaTime)

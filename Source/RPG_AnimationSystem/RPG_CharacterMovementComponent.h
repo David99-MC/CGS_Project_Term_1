@@ -58,6 +58,8 @@ public:
 
 	void StopClimbing();
 
+	bool ShouldStopClimbing();
+
 	void PhysClimb(float deltaTime, int32 Iterations);
 
 	void ProcessClimbableSurfaces();
@@ -103,5 +105,7 @@ private:
 	FVector CurrentClimbableSurfaceLocation;
 
 	FVector CurrentClimbableSurfaceNormal;
+
+	float StopClimbingDegree = 60.f;
 	
 };
