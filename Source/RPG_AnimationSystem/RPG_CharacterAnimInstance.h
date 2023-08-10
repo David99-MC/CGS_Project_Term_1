@@ -7,7 +7,7 @@
 #include "RPG_CharacterAnimInstance.generated.h"
 
 class ARPG_Character;
-class UCharacterMovementComponent;
+class URPG_CharacterMovementComponent;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API URPG_CharacterAnimInstance : public UAnimInstance
@@ -23,7 +23,7 @@ private:
 	ARPG_Character* CharacterOwner;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-	UCharacterMovementComponent* CharMovementComp;
+	URPG_CharacterMovementComponent* CharacterMovementComp;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	bool bSprinting;

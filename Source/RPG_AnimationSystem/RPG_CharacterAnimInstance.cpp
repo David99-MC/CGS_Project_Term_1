@@ -3,24 +3,26 @@
 
 #include "RPG_CharacterAnimInstance.h"
 #include "RPG_Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "RPG_CharacterMovementComponent.h"
 
 void URPG_CharacterAnimInstance::NativeInitializeAnimation()
 {
 	CharacterOwner = Cast<ARPG_Character>(GetOwningActor());
+	if (CharacterOwner)
+	{
+		CharacterMovementComp = CharacterOwner->RPG_CharacterMovementComponent;
+	}
 }
 
 void URPG_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	if (CharacterOwner == nullptr) return;
 
-	CharMovementComp = CharacterOwner->GetCharacterMovement();
-
-	GroundSpeed = CharMovementComp->Velocity.Size2D();
+	GroundSpeed = CharacterMovementComp->Velocity.Size2D();
 
 	bSprinting = CharacterOwner->bIsSprinting;
 
-	bIsFalling = CharMovementComp->IsFalling();
+	bIsFalling = CharacterMovementComp->IsFalling();
 
 	bIsCrouched = CharacterOwner->bIsCrouched;
 
