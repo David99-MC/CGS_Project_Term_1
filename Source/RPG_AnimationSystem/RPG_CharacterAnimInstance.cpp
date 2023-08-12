@@ -27,5 +27,9 @@ void URPG_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsCrouched = CharacterOwner->bIsCrouched;
 
 	bCanTurnInPlace = CharacterOwner->bCanTurn;
+
+	bIsClimbing = CharacterMovementComp->IsClimbing();
+
+	ClimbVelocity = CharacterMovementComp->GetUnrotatedVelocityVector();
 	
 }

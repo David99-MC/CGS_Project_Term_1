@@ -8,6 +8,9 @@
 
 #include "RPG_CharacterMovementComponent.generated.h"
 
+class UAnimInstance;
+class UAnimMontage;
+
 UENUM(BlueprintType)
 namespace ECustomMovementMode
 {
@@ -24,6 +27,8 @@ class RPG_ANIMATIONSYSTEM_API URPG_CharacterMovementComponent : public UCharacte
 	GENERATED_BODY()
 
 protected:
+	virtual void BeginPlay() override;
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void DisplayMovementMode();
@@ -35,6 +40,7 @@ protected:
 	virtual float GetMaxSpeed() const override;
 
 	virtual float GetMaxAcceleration() const override;
+
 
 public:
 	TArray<FHitResult> DoCapsuleTraceMultiForObjects(const FVector& Start, const FVector& End, bool bShowDebugShape = false, bool bPersistentLine = false);
@@ -74,6 +80,12 @@ public:
 
 	void SnapMovementToClimbableSurfaces(float DeltaTime);
 
+	UFUNCTION()
+	void OnClimbMontageEnded(UAnimMontage* Montage, bool bInteruppted);
+
+	void PlayClimbMontage(UAnimMontage* MontageToPlay);
+
+	FVector GetUnrotatedVelocityVector();
 public:
 	// Configurable Climb variables
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
@@ -96,6 +108,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
 	float MaxClimbAcceleration = 300.f;
+
+	UPROPERTY(BlueprintReadOnly, category = "Climbing Animation")
+	UAnimInstance* OwningPlayerAnimInstance;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Climbing Animation")
+	UAnimMontage* IdleToClimbMontage;
 
 private:
 	TArray<FHitResult> ClimbableSurfacesTraceHitResults;

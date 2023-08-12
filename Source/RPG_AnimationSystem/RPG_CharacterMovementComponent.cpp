@@ -5,6 +5,20 @@
 #include "RPG_Character.h"
 #include "Engine/Engine.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
+
+
+void URPG_CharacterMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	OwningPlayerAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
+
+	if (OwningPlayerAnimInstance)
+	{
+		OwningPlayerAnimInstance->OnMontageEnded.AddDynamic(this, &URPG_CharacterMovementComponent::OnClimbMontageEnded);
+		OwningPlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &URPG_CharacterMovementComponent::OnClimbMontageEnded);
+	}
+}
 
 void URPG_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -37,7 +51,7 @@ void URPG_CharacterMovementComponent::OnMovementModeChanged(EMovementMode Previo
 			bUseControllerDesiredRotation = false;
 			Player->bUseControllerRotationYaw = false;
 		}
-		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(44.f);
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(60.f);
 	}
 
 	// Just Exit the Climbing State
@@ -297,13 +311,7 @@ void URPG_CharacterMovementComponent::ToggleClimbing(bool bEnableClimbing)
 	{
 		if (CanStartClimbing())
 		{
-			// Start Climbing
-			GEngine->AddOnScreenDebugMessage(3, 2.f, FColor::Green, TEXT("Can climb now"));
-			StartClimbing();
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(3, 2.f, FColor::Red, TEXT("Can NOT climb now"));
+			PlayClimbMontage(IdleToClimbMontage);
 		}
 	}
 	else
@@ -326,4 +334,26 @@ void URPG_CharacterMovementComponent::StartClimbing()
 void URPG_CharacterMovementComponent::StopClimbing()
 {
 	SetMovementMode(EMovementMode::MOVE_Falling);
+}
+
+void URPG_CharacterMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
+{
+	if (OwningPlayerAnimInstance == nullptr || MontageToPlay == nullptr || OwningPlayerAnimInstance->IsAnyMontagePlaying())
+		return;
+
+	OwningPlayerAnimInstance->Montage_Play(MontageToPlay);
+}
+
+void URPG_CharacterMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bInteruppted)
+{
+	if (Montage == IdleToClimbMontage)
+	{
+		// Start Climbing when the Character has finished playing IdleToClimb montage
+		StartClimbing();
+	}
+}
+
+FVector URPG_CharacterMovementComponent::GetUnrotatedVelocityVector()
+{
+	return UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), Velocity);
 }
