@@ -67,7 +67,7 @@ void URPG_CharacterMovementComponent::OnMovementModeChanged(EMovementMode Previo
 		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(88.f);
 
 		FRotator DirtyRotation = UpdatedComponent->GetComponentRotation();
-		FRotator CleanRotation = FRotator(0.f, DirtyRotation.Yaw, 0.f);
+		FRotator CleanRotation = FRotator::ZeroRotator; // FRotator(0.f, DirtyRotation.Yaw, 0.f);
 		UpdatedComponent->SetRelativeRotation(CleanRotation);
 
 		StopMovementImmediately(); // cancel any excess movement from this state
@@ -98,7 +98,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	ProcessClimbableSurfaces();
 
 	/*Check if we should stop climbing*/
-	if (ShouldStopClimbing())
+	if (ShouldStopClimbing() || HasReachedFloor())
 	{
 		StopClimbing();
 	}
@@ -134,6 +134,11 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 
 	/*Snap movement to climbable surfaces*/
 	SnapMovementToClimbableSurfaces(deltaTime);
+
+	if (HasReachedLedge())
+	{
+		PlayClimbMontage(ClimbToTopMontage);
+	}
 }
 
 float URPG_CharacterMovementComponent::GetMaxSpeed() const
@@ -150,6 +155,21 @@ float URPG_CharacterMovementComponent::GetMaxAcceleration() const
 		return Super::GetMaxAcceleration();
 
 	return MaxClimbAcceleration;
+}
+
+FVector URPG_CharacterMovementComponent::ConstrainAnimRootMotionVelocity(const FVector& RootMotionVelocity, const FVector& CurrentVelocity) const
+{
+	bool bIsRootMotionAnimPlaying =
+		IsFalling() && OwningPlayerAnimInstance && OwningPlayerAnimInstance->IsAnyMontagePlaying();
+
+	if (bIsRootMotionAnimPlaying)
+	{
+		return RootMotionVelocity;
+	}
+	else
+	{
+		return Super::ConstrainAnimRootMotionVelocity(RootMotionVelocity, CurrentVelocity);
+	}
 }
 
 void URPG_CharacterMovementComponent::ProcessClimbableSurfaces()
@@ -174,9 +194,68 @@ bool URPG_CharacterMovementComponent::ShouldStopClimbing()
 	if (ClimbableSurfacesTraceHitResults.IsEmpty()) return true;
 
 	float DotResult = FVector::DotProduct(CurrentClimbableSurfaceNormal, FVector::UpVector);
-	float DeltaDegree = FMath::RadiansToDegrees(FMath::Acos(DotResult)); //Acos() returns radian 
+	float DeltaDegree = FMath::RadiansToDegrees(FMath::Acos(DotResult)); //Acos() returns radian
+	//GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Emerald, FString::Printf(TEXT("DeltaDegree: %f"), DeltaDegree));
 
-	return DeltaDegree <= StopClimbingDegree;
+	return DeltaDegree < StopClimbingDegree;
+}
+
+bool URPG_CharacterMovementComponent::HasReachedFloor()
+{
+	FVector DownVector = -UpdatedComponent->GetUpVector();
+	FVector StartOffset = DownVector * 50.f;
+	FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
+	FVector End = Start + DownVector;
+
+	TArray<FHitResult> PossibleFloorHits = DoCapsuleTraceMultiForObjects(Start, End);
+
+	if (PossibleFloorHits.IsEmpty()) return false;
+
+	for (FHitResult& PossibleFloorHit : PossibleFloorHits)
+	{
+		bool bReachedFloor = FVector::Parallel(PossibleFloorHit.ImpactNormal, DownVector) &&
+			(GetUnrotatedVelocityVector().Z < -10); // Climbing down
+
+		if (bReachedFloor)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool URPG_CharacterMovementComponent::HasReachedLedge()
+{
+	TraceFromEyeHeight(80.f, 20.f);
+
+	if (EyeHeightTraceHitResult.bBlockingHit) // It's not ledge when there's still surface at eye height
+		return false;
+
+	FVector DownVector = -UpdatedComponent->GetUpVector();
+	FVector Start = EyeHeightTraceHitResult.TraceEnd;
+	FVector EndOffset = DownVector * 50.f;
+	FVector End = Start + EndOffset;
+
+	FHitResult LedgeHitResult = DoLineTraceSingleForObject(Start, End);
+
+	return LedgeHitResult.bBlockingHit && GetUnrotatedVelocityVector().Z > 10.f;
+}
+
+bool URPG_CharacterMovementComponent::CanClimbDown()
+{
+	if (IsFalling()) 
+		return false;
+
+	FVector StartOnGround = UpdatedComponent->GetComponentLocation() + UpdatedComponent->GetForwardVector() * StartOnGroundDistance;
+	FVector EndOnGround = StartOnGround - UpdatedComponent->GetUpVector() * 100.f;
+	FHitResult GroundHitResult = DoLineTraceSingleForObject(StartOnGround, EndOnGround); 
+
+	FVector StartClimbableSurface = StartOnGround + UpdatedComponent->GetForwardVector() * StartOnGroundOffset;
+	FVector EndClimbableSurface = StartClimbableSurface - UpdatedComponent->GetUpVector() * 150.f;
+
+	FHitResult ClimbDownSurface = DoLineTraceSingleForObject(StartClimbableSurface, EndClimbableSurface);
+
+	return GroundHitResult.bBlockingHit && !ClimbDownSurface.bBlockingHit;
 }
 
 FQuat URPG_CharacterMovementComponent::GetClimbRotation(float DeltaTime)
@@ -259,10 +338,8 @@ TArray<FHitResult> URPG_CharacterMovementComponent::DoCapsuleTraceMultiForObject
 
 bool URPG_CharacterMovementComponent::TraceFromEyeHeight(float TraceDistance, float TraceStartOffset)
 {
-	FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
-
 	FVector EyeHeightOffset = UpdatedComponent->GetUpVector() * (CharacterOwner->BaseEyeHeight + TraceStartOffset);
-	FVector Start = ComponentLocation + EyeHeightOffset;
+	FVector Start = UpdatedComponent->GetComponentLocation() + EyeHeightOffset;
 	FVector End = Start + (UpdatedComponent->GetForwardVector() * TraceDistance);
 
 	EyeHeightTraceHitResult = DoLineTraceSingleForObject(Start, End);
@@ -313,6 +390,10 @@ void URPG_CharacterMovementComponent::ToggleClimbing(bool bEnableClimbing)
 		{
 			PlayClimbMontage(IdleToClimbMontage);
 		}
+		else if (CanClimbDown())
+		{
+			PlayClimbMontage(ClimbDownLedgeMontage);
+		}
 	}
 	else
 	{
@@ -346,11 +427,17 @@ void URPG_CharacterMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPl
 
 void URPG_CharacterMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bInteruppted)
 {
-	if (Montage == IdleToClimbMontage)
+	if (Montage == IdleToClimbMontage || Montage == ClimbDownLedgeMontage)
 	{
-		// Start Climbing when the Character has finished playing IdleToClimb montage
 		StartClimbing();
+		StopMovementImmediately(); // Disable any excess Velocity from RootMotion anim
 	}
+
+	if (Montage == ClimbToTopMontage)
+	{
+		SetMovementMode(EMovementMode::MOVE_Walking);
+	}
+	
 }
 
 FVector URPG_CharacterMovementComponent::GetUnrotatedVelocityVector()

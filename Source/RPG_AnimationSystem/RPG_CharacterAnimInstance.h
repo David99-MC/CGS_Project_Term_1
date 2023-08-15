@@ -20,6 +20,7 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 
 private:
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
 	ARPG_Character* CharacterOwner;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))

@@ -31,8 +31,6 @@ protected:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void DisplayMovementMode();
-
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
@@ -40,6 +38,9 @@ protected:
 	virtual float GetMaxSpeed() const override;
 
 	virtual float GetMaxAcceleration() const override;
+
+	// Disable the effect of gravity when there's a Root Motion animation in play
+	virtual FVector ConstrainAnimRootMotionVelocity(const FVector& RootMotionVelocity, const FVector& CurrentVelocity) const override;
 
 
 public:
@@ -66,8 +67,15 @@ public:
 
 	bool ShouldStopClimbing();
 
+	bool HasReachedFloor();
+
+	bool HasReachedLedge();
+
+	bool CanClimbDown();
+
 	void PhysClimb(float deltaTime, int32 Iterations);
 
+	// Getting an average Vector each for SurfaceLocations and SurfaceNormals
 	void ProcessClimbableSurfaces();
 	
 	/* 
@@ -86,6 +94,8 @@ public:
 	void PlayClimbMontage(UAnimMontage* MontageToPlay);
 
 	FVector GetUnrotatedVelocityVector();
+
+	void DisplayMovementMode();
 public:
 	// Configurable Climb variables
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
@@ -109,11 +119,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
 	float MaxClimbAcceleration = 300.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
+	float StartOnGroundDistance = 50.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
+	float StartOnGroundOffset = 20.f;
+
 	UPROPERTY(BlueprintReadOnly, category = "Climbing Animation")
 	UAnimInstance* OwningPlayerAnimInstance;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Climbing Animation")
 	UAnimMontage* IdleToClimbMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Climbing Animation")
+	UAnimMontage* ClimbToTopMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Climbing Animation")
+	UAnimMontage* ClimbDownLedgeMontage;
 
 private:
 	TArray<FHitResult> ClimbableSurfacesTraceHitResults;
@@ -124,6 +146,6 @@ private:
 
 	FVector CurrentClimbableSurfaceNormal;
 
-	float StopClimbingDegree = 60.f;
+	float StopClimbingDegree = 30.f;
 	
 };
