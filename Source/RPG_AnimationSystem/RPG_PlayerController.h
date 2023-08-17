@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "RPG_PlayerController.generated.h"
 
+class UUserWidget;
+
 /**
  * 
  */
@@ -14,4 +16,13 @@ class RPG_ANIMATIONSYSTEM_API ARPG_PlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	UPROPERTY(EditDefaultsOnly, category = Widgets)
+	TSubclassOf<UUserWidget> HUDOverlayAsset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Widgets)
+	UUserWidget* HUDOverlay;
 };

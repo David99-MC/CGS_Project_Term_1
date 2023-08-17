@@ -29,7 +29,13 @@ public:
 
 	FORCEINLINE float GetHealth() { return Health; }
 
+	UFUNCTION(BlueprintCallable)
+	float GetHealthPercent();
+
 protected:
+	UPROPERTY(VisibleAnywhere)
+	float MaxHealth = 100.f;
+
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
 

@@ -34,9 +34,9 @@ void UDealDamageComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// Simulating DoT
-	if (Player != nullptr)
+	if (Player != nullptr && bCanDealDoT)
 	{
-		UGameplayStatics::ApplyDamage(Player, DeltaTime * DamageRate, nullptr, GetOwner(), UDamageType::StaticClass());
+		UGameplayStatics::ApplyDamage(Player, DeltaTime * FireDamageRate, nullptr, GetOwner(), UDamageType::StaticClass());
 	}
 }
 
@@ -45,6 +45,10 @@ void UDealDamageComponent::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
 	if (ARPG_Character* OverlappingCharacter = Cast<ARPG_Character>(OtherActor))
 	{
 		Player = OverlappingCharacter;
+		if (!bCanDealDoT)
+		{
+			UGameplayStatics::ApplyDamage(Player, SwingBladeDamage, nullptr, GetOwner(), UDamageType::StaticClass());
+		}
 	}
 }
 

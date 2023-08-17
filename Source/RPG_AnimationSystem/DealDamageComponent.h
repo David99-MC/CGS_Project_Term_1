@@ -42,6 +42,12 @@ protected:
 	ARPG_Character* Player = nullptr;
 
 	UPROPERTY(EditAnywhere, category = Damage)
-	float DamageRate = 5.f;
+	float FireDamageRate = 5.f;
+
+	UPROPERTY(EditAnywhere, category = Damage)
+	float SwingBladeDamage = 50.f;
+
+	UPROPERTY(EditAnywhere, category = Damage)
+	bool bCanDealDoT;
 		
 };

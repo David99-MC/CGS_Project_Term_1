@@ -40,4 +40,9 @@ bool UHealthComponent::IsDead()
 	return Health <= 0;
 }
 
+float UHealthComponent::GetHealthPercent()
+{
+	return Health/MaxHealth;
+}
+
 
