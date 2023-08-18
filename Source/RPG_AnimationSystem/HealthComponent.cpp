@@ -30,7 +30,7 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	
 }
 
-void UHealthComponent::TakeDamage(float Damage)
+void UHealthComponent::ReceiveDamage(float Damage)
 {
 	Health = FMath::Clamp(Health - Damage, 0, 100);
 }

@@ -7,6 +7,9 @@
 
 #include "CombatComponent.generated.h"
 
+class UParticleSystem;
+class USoundCue;
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPG_ANIMATIONSYSTEM_API UCombatComponent : public UActorComponent
@@ -24,8 +27,9 @@ protected:
 
 	bool CheckValidPtr();
 	
+	// Callback for OnPlayMontageNotifyBegin delegate
 	UFUNCTION()
-	void ShouldMontageStop(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload); // Callback for OnPlayMontageNotifyBegin delegate
+	void ShouldMontageStop(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload); 
 
 public:
 	UAnimInstance* OwningCharacterAnimInstance;
@@ -37,5 +41,14 @@ public:
 	UAnimMontage* AttackComboMontage;
 
 	int AttackIndex = 0;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* AttackHitParticle;
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* AttachHitSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float BaseDamage = 50.f;
 		
 };

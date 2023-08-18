@@ -19,11 +19,12 @@
 #include "HealthComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "CombatComponent.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
@@ -66,6 +67,9 @@ ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Big Sword"));
 	Weapon->SetupAttachment(GetMesh(), FName("Weapon_RSocket"));
 
+	WeaponHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("Weapon Hitbox"));
+	WeaponHitbox->SetupAttachment(Weapon);
+
 }
 
 // Called when the game starts or when spawned
@@ -79,6 +83,8 @@ void ARPG_Character::BeginPlay()
 			LocalPlayerSubsystem->AddMappingContext(LocomotionMappingContext, 0);
 		}
 	}
+
+	WeaponHitbox->OnComponentBeginOverlap.AddDynamic(this, &ARPG_Character::OnWeaponHitboxBeginOverlap);
 
 }
 
@@ -228,7 +234,7 @@ float ARPG_Character::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	if (HealthComponent == nullptr) return 0.f;
 
 	float DamageTaken = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	HealthComponent->TakeDamage(DamageTaken);
+	HealthComponent->ReceiveDamage(DamageTaken);
 	if (HealthComponent->IsDead())
 	{
 		RespawnPlayer();
@@ -248,3 +254,22 @@ void ARPG_Character::RespawnPlayer()
 	}
 }
 
+void ARPG_Character::OnWeaponHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (CharacterCombatComponent == nullptr || OtherActor == this) return;
+
+	UGameplayStatics::ApplyDamage(OtherActor, 
+								  CharacterCombatComponent->BaseDamage, 
+								  Controller, 
+								  this, 
+								  UDamageType::StaticClass());
+	
+	if (CharacterCombatComponent->AttackHitParticle)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this,
+												 CharacterCombatComponent->AttackHitParticle,
+												 OtherActor->GetActorLocation(),
+												 OtherActor->GetActorRotation(),
+												 true);
+	}
+}

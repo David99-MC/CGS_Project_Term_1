@@ -15,7 +15,7 @@ class UInputAction;
 class URPG_CharacterMovementComponent;
 class UDamageType;
 class UHealthComponent;
-class USphereComponent;
+class UBoxComponent;
 class UStaticMeshComponent;
 class UCombatComponent;
 
@@ -54,8 +54,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	/*virtual void Destroyed() override;*/
-
 	// Called when the Character fell below Z Kill
 	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 
@@ -78,6 +76,10 @@ protected:
 	void Attack(const FInputActionValue& Value);
 
 	void RespawnPlayer();
+
+	UFUNCTION()
+	void OnWeaponHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -104,6 +106,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Combat)
 	UCombatComponent* CharacterCombatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat)
+	UBoxComponent* WeaponHitbox;
 
 	/** Locomotion Variables */
 	UPROPERTY(EditAnywhere, category = Movement)

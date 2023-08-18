@@ -7,6 +7,7 @@
 #include "Enemy.generated.h"
 
 class UCombatComponent;
+class UHealthComponent;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API AEnemy : public ACharacter
@@ -21,15 +22,30 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void StopPlayingAnimation(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyActor();
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Combat)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat)
 	UCombatComponent* EnemyCombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat)
+	UHealthComponent* EnemyHealthComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Combat)
+	UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Combat)
+	UAnimMontage* DeathMontage;
 
 };

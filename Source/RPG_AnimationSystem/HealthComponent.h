@@ -24,7 +24,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void TakeDamage(float Damage);
+	void ReceiveDamage(float Damage);
 	bool IsDead();
 
 	FORCEINLINE float GetHealth() { return Health; }
@@ -36,7 +36,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	float MaxHealth = 100.f;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	float Health = 100.f;
 
 
