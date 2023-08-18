@@ -16,6 +16,8 @@ class URPG_CharacterMovementComponent;
 class UDamageType;
 class UHealthComponent;
 class USphereComponent;
+class UStaticMeshComponent;
+class UCombatComponent;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
@@ -44,7 +46,7 @@ class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
 	UInputAction* ClimbAction;
 
 	UPROPERTY(EditAnywhere, category = Input)
-	UInputAction* FocusAction;
+	UInputAction* AttackAction;
 
 public:
 	ARPG_Character(const FObjectInitializer& ObjectInitializer);
@@ -73,11 +75,7 @@ protected:
 
 	void Climb(const FInputActionValue& Value);
 
-	void Focus(const FInputActionValue& Value);
-
-	AActor* GetNearestOverlappingActor(const TArray<AActor*>& OverlappingActors);
-
-	void ToggleControlRotation(bool bShouldFocus);
+	void Attack(const FInputActionValue& Value);
 
 	void RespawnPlayer();
 
@@ -87,6 +85,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
+	/* Essential Components */
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* Camera;
 
@@ -96,21 +95,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Movement)
 	URPG_CharacterMovementComponent* RPG_CharacterMovementComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Stats)
+	/* Combat Components*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat)
 	UHealthComponent* HealthComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+	UStaticMeshComponent* Weapon;
 
-	/* Targeting System */
-	UPROPERTY(VisibleAnywhere)
-	USphereComponent* SphereTargetRange;
-
-	bool bIsFocusing = false;
-
-	AActor* TargetToFocus = nullptr;
-
-	FLatentActionInfo LatentActionInfo;
-
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Combat)
+	UCombatComponent* CharacterCombatComponent;
 
 	/** Locomotion Variables */
 	UPROPERTY(EditAnywhere, category = Movement)

@@ -18,6 +18,8 @@
 
 #include "HealthComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "CombatComponent.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -59,9 +61,10 @@ ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 
-	SphereTargetRange = CreateDefaultSubobject<USphereComponent>(TEXT("Target Range"));
-	SphereTargetRange->SetupAttachment(RootComponent);
-	SphereTargetRange->SetSphereRadius(500.f);
+	CharacterCombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
+
+	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Big Sword"));
+	Weapon->SetupAttachment(GetMesh(), FName("Weapon_RSocket"));
 
 }
 
@@ -76,7 +79,7 @@ void ARPG_Character::BeginPlay()
 			LocalPlayerSubsystem->AddMappingContext(LocomotionMappingContext, 0);
 		}
 	}
-	
+
 }
 
 // Called every frame
@@ -105,8 +108,7 @@ void ARPG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ARPG_Character::ToggleCrouch);
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ARPG_Character::Climb);
-	
-		EnhancedInputComponent->BindAction(FocusAction, ETriggerEvent::Started, this, &ARPG_Character::Focus);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPG_Character::Attack);
 	}
 	
 }
@@ -200,50 +202,6 @@ void ARPG_Character::ToggleCrouch(const FInputActionValue& Value)
 	}
 }
 
-void ARPG_Character::Focus(const FInputActionValue& Value)
-{
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors);
-
-	FString Info = FString::Printf(TEXT("Number of overlapping actors: %d"), OverlappingActors.Num());
-	GEngine->AddOnScreenDebugMessage(2, 2.f, FColor::Green, Info);
-
-	//TargetToFocus = GetNearestOverlappingActor(OverlappingActors);
-
-}
-
-AActor* ARPG_Character::GetNearestOverlappingActor(const TArray<AActor*>& OverlappingActors)
-{
-	if (OverlappingActors.IsEmpty())
-	{
-		return nullptr;
-	}
-
-	double MinDistance = FVector::Distance(GetActorLocation(), OverlappingActors[0]->GetActorLocation());
-	AActor* NearestActor = OverlappingActors[0];
-	for (int i = 1; i < OverlappingActors.Num(); i++)
-	{
-		double NewDistance = FVector::Distance(GetActorLocation(), OverlappingActors[i]->GetActorLocation());
-		if (NewDistance < MinDistance)
-		{
-			MinDistance = NewDistance;
-			NearestActor = OverlappingActors[i];
-		}
-	}
-
-	bIsFocusing = !bIsFocusing;
-	ToggleControlRotation(bIsFocusing);
-
-	return NearestActor;
-}
-
-void ARPG_Character::ToggleControlRotation(bool bShouldFocus)
-{
-	CameraBoom->bUsePawnControlRotation = bShouldFocus ? false : true;
-	CameraBoom->bInheritYaw = bShouldFocus ? false : true;
-	GetCharacterMovement()->bUseControllerDesiredRotation = bShouldFocus ? false : true;
-}
-
 void ARPG_Character::Climb(const FInputActionValue& Value)
 {
 	if (RPG_CharacterMovementComponent == nullptr) return;
@@ -256,6 +214,13 @@ void ARPG_Character::Climb(const FInputActionValue& Value)
 	{
 		RPG_CharacterMovementComponent->ToggleClimbing(true);
 	}
+}
+
+void ARPG_Character::Attack(const FInputActionValue& Value)
+{
+	if (CharacterCombatComponent == nullptr) return;
+
+	CharacterCombatComponent->StartAttack();
 }
 
 float ARPG_Character::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

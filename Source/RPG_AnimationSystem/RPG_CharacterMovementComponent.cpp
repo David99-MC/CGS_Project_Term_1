@@ -18,6 +18,7 @@ void URPG_CharacterMovementComponent::BeginPlay()
 		OwningPlayerAnimInstance->OnMontageEnded.AddDynamic(this, &URPG_CharacterMovementComponent::OnClimbMontageEnded);
 		OwningPlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &URPG_CharacterMovementComponent::OnClimbMontageEnded);
 	}
+	
 }
 
 void URPG_CharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
