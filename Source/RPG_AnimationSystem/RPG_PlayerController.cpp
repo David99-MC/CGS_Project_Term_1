@@ -7,11 +7,18 @@
 void ARPG_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+}
 
+void ARPG_PlayerController::DisplayHealthBar()
+{
 	if (HUDOverlayAsset)
 	{
 		HUDOverlay = CreateWidget<UUserWidget>(this, HUDOverlayAsset);
 	}
+
+	if (HUDOverlay == nullptr) return;
+
 	HUDOverlay->AddToViewport();
 	HUDOverlay->SetVisibility(ESlateVisibility::Visible);
 }

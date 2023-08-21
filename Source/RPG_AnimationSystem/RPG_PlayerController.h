@@ -20,9 +20,13 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void DisplayHealthBar();
+
+public:
 	UPROPERTY(EditDefaultsOnly, category = Widgets)
 	TSubclassOf<UUserWidget> HUDOverlayAsset;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Widgets)
+	UPROPERTY()
 	UUserWidget* HUDOverlay;
 };
