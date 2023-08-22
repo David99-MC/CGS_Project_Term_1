@@ -6,9 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "RPG_AnimationSystemGameModeBase.generated.h"
 
-/**
- * 
- */
+
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_AnimationSystemGameModeBase : public AGameModeBase
@@ -16,7 +14,6 @@ class RPG_ANIMATIONSYSTEM_API ARPG_AnimationSystemGameModeBase : public AGameMod
 	GENERATED_BODY()
 
 public:
-
 	// Calling RestartPlayerAtLocation() on AGameModeBase class
 	virtual void RequestRespawnPlayer(ACharacter* NewCharacter, AController* NewPlayer);
 

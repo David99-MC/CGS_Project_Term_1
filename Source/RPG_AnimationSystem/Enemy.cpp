@@ -5,6 +5,7 @@
 #include "CombatComponent.h"
 #include "HealthComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "RPG_PlayerController.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -46,6 +47,7 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 		if (EnemyHealthComponent->IsDead())
 		{
 			EnemyAnimInstance->Montage_Play(DeathMontage);
+			UpdateSkeletonObjective(EventInstigator);
 		}
 	}
 	return ActualAmount;
@@ -69,5 +71,17 @@ void AEnemy::StopPlayingAnimation(FName NotifyName, const FBranchingPointNotifyP
 void AEnemy::DestroyActor()
 {
 	Destroy();
+}
+
+void AEnemy::UpdateSkeletonObjective(AController* EventInstigator)
+{
+	if (ActorHasTag("Skeleton"))
+	{
+		if (ARPG_PlayerController* PlayerController = Cast<ARPG_PlayerController>(EventInstigator))
+		{
+			PlayerController->DecreaseObjectiveSkeleton();
+		}
+
+	}
 }
 

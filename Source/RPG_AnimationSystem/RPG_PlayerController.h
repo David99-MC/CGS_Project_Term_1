@@ -23,10 +23,31 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DisplayHealthBar();
 
+	UFUNCTION(BlueprintCallable)
+	void DisplayObjectiveHUD();
+
+	// Play the fade in/out animation
+	// Parameter: true means fade in
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateObjectiveHUD(bool bReversed);
+
+	void DecreaseObjectiveSkeleton();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateObjectiveText();
+
 public:
 	UPROPERTY(EditDefaultsOnly, category = Widgets)
-	TSubclassOf<UUserWidget> HUDOverlayAsset;
+	TSubclassOf<UUserWidget> HUDOverlayClass;
 
 	UPROPERTY()
 	UUserWidget* HUDOverlay;
+
+	UPROPERTY(EditDefaultsOnly, category = Widgets)
+	TSubclassOf<UUserWidget> ObjectiveHUDClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	UUserWidget* ObjectiveHUD;
+
+	TArray<AActor*> ObjectiveSkeletons;
 };

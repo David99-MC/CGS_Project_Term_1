@@ -28,6 +28,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void DestroyActor();
 
+	void UpdateSkeletonObjective(AController* EventInstigator);
+
 
 public:	
 	// Called every frame
