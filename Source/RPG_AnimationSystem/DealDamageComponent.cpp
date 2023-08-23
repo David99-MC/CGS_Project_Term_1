@@ -2,7 +2,7 @@
 
 
 #include "DealDamageComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 #include "RPG_Character.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -14,7 +14,7 @@ UDealDamageComponent::UDealDamageComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	TriggerArea = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Area"));
+	HitboxArea = CreateDefaultSubobject<UBoxComponent>(TEXT("Hitbox Area"));
 
 }
 
@@ -24,8 +24,8 @@ void UDealDamageComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TriggerArea->OnComponentBeginOverlap.AddDynamic(this, &UDealDamageComponent::OnBeginOverlap);
-	TriggerArea->OnComponentEndOverlap.AddDynamic(this, &UDealDamageComponent::OnEndOverlap);
+	HitboxArea->OnComponentBeginOverlap.AddDynamic(this, &UDealDamageComponent::OnBeginOverlap);
+	HitboxArea->OnComponentEndOverlap.AddDynamic(this, &UDealDamageComponent::OnEndOverlap);
 }
 
 // Called every frame
@@ -44,7 +44,8 @@ void UDealDamageComponent::OnBeginOverlap(UPrimitiveComponent* OverlappedCompone
 {
 	if (ARPG_Character* OverlappingCharacter = Cast<ARPG_Character>(OtherActor))
 	{
-		Player = OverlappingCharacter;
+		Player = OverlappingCharacter; // Assigning for dealing DoT
+
 		if (!bCanDealDoT)
 		{
 			UGameplayStatics::ApplyDamage(Player, SwingBladeDamage, nullptr, GetOwner(), UDamageType::StaticClass());

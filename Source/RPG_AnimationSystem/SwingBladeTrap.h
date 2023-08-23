@@ -6,21 +6,33 @@
 #include "GameFramework/Actor.h"
 #include "SwingBladeTrap.generated.h"
 
+class UDealDamageComponent;
+class USinusoidalComponent;
+
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ASwingBladeTrap : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ASwingBladeTrap();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UDealDamageComponent* DealDamageComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USinusoidalComponent* SinusoidalComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent* SwingBlade;
+
+	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* PivotPoint;
 };

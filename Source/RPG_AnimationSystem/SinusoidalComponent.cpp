@@ -3,32 +3,35 @@
 
 #include "SinusoidalComponent.h"
 
-// Sets default values for this component's properties
 USinusoidalComponent::USinusoidalComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
-}
-
-
-// Called when the game starts
-void USinusoidalComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
 	
 }
 
+void USinusoidalComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
 
-// Called every frame
 void USinusoidalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	RunningTime += DeltaTime;
+
+	if (bFloatingMovement)
+	{
+		float DeltaZ = Amplitude * (FMath::Sin(RunningTime * TimeConstant));
+		GetOwner()->AddActorWorldOffset(FVector(0.f, 0.f, DeltaZ));
+	}
+	else if (bSwingMovement)
+	{
+		float DeltaPitch = Amplitude * FMath::Sin(RunningTime * TimeConstant);
+			
+		FRotator BaseRotator = bShouldReversed ? FRotator(-DeltaPitch, 90.f, 0.f) : FRotator(DeltaPitch, 90.f, 0.f);
+		GetOwner()->SetActorRotation(BaseRotator);
+	}
 }
 

@@ -4,7 +4,7 @@
 #include "FireTrap.h"
 #include "DealDamageComponent.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 AFireTrap::AFireTrap()
@@ -13,9 +13,9 @@ AFireTrap::AFireTrap()
 	PrimaryActorTick.bCanEverTick = true;
 
 	DealDamageComponent = CreateDefaultSubobject<UDealDamageComponent>(TEXT("Deal Damage Component"));
-	if (DealDamageComponent && DealDamageComponent->GetCapsuleComponent())
+	if (DealDamageComponent && DealDamageComponent->GetHitboxArea())
 	{
-		RootComponent = DealDamageComponent->GetCapsuleComponent();
+		RootComponent = DealDamageComponent->GetHitboxArea();
 	}
 
 	ParticleEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle Effect"));

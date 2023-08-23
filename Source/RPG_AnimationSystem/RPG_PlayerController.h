@@ -23,6 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DisplayHealthBar();
 
+#pragma region Skeleton Objective
 	UFUNCTION(BlueprintCallable)
 	void DisplayObjectiveHUD();
 
@@ -32,6 +33,8 @@ public:
 	void UpdateObjectiveHUD(bool bReversed);
 
 	void DecreaseObjectiveSkeleton();
+#pragma endregion
+
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateObjectiveText();

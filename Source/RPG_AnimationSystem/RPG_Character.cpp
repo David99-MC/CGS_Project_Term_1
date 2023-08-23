@@ -85,7 +85,7 @@ void ARPG_Character::BeginPlay()
 	}
 
 	WeaponHitbox->OnComponentBeginOverlap.AddDynamic(this, &ARPG_Character::OnWeaponHitboxBeginOverlap);
-
+	WeaponHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 // Called every frame

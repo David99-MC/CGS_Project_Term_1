@@ -56,7 +56,7 @@ void ARPG_PlayerController::DecreaseObjectiveSkeleton()
 		LatentActionInfo1.CallbackTarget = this;
 		LatentActionInfo1.ExecutionFunction = "UpdateObjectiveText";
 		LatentActionInfo1.Linkage = 1;
-		UKismetSystemLibrary::Delay(this, .75f, LatentActionInfo1);
+		UKismetSystemLibrary::Delay(this, 1.f, LatentActionInfo1);
 
 	}
 }

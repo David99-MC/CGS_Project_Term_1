@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "DealDamageComponent.generated.h"
 
-class UCapsuleComponent;
+class UBoxComponent;
 class ARPG_Character;
 
 
@@ -33,21 +33,21 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override; 
 
-	UCapsuleComponent* GetCapsuleComponent() const { return TriggerArea; }
+	UBoxComponent* GetHitboxArea() const { return HitboxArea; }
 
 protected:
 	UPROPERTY(VisibleAnywhere)
-	UCapsuleComponent* TriggerArea;
+	UBoxComponent* HitboxArea;
 
 	ARPG_Character* Player = nullptr;
 
-	UPROPERTY(EditAnywhere, category = Damage)
+	UPROPERTY(EditAnywhere, category = FireTrapDamage)
 	float FireDamageRate = 5.f;
 
-	UPROPERTY(EditAnywhere, category = Damage)
-	float SwingBladeDamage = 50.f;
-
-	UPROPERTY(EditAnywhere, category = Damage)
+	UPROPERTY(EditAnywhere, category = FireTrapDamage)
 	bool bCanDealDoT;
+
+	UPROPERTY(EditAnywhere, category = SwingBladeDamage)
+	float SwingBladeDamage = 50.f;
 		
 };
