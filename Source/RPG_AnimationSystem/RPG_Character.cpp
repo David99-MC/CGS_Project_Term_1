@@ -26,6 +26,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "BasePickup.h"
+
 // Sets default values
 ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<URPG_CharacterMovementComponent>(ARPG_Character::CharacterMovementComponentName))
@@ -86,6 +88,8 @@ void ARPG_Character::BeginPlay()
 
 	WeaponHitbox->OnComponentBeginOverlap.AddDynamic(this, &ARPG_Character::OnWeaponHitboxBeginOverlap);
 	WeaponHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &ARPG_Character::PauseAnimation);
 }
 
 // Called every frame
@@ -111,10 +115,13 @@ void ARPG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ARPG_Character::ToggleCrouch);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ARPG_Character::ToggleCrouch);
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ARPG_Character::Climb);
+
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPG_Character::Attack);
+		
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPG_Character::Interact);
 	}
 	
 }
@@ -224,20 +231,40 @@ void ARPG_Character::Climb(const FInputActionValue& Value)
 
 void ARPG_Character::Attack(const FInputActionValue& Value)
 {
-	if (CharacterCombatComponent == nullptr) return;
+	if (CharacterCombatComponent == nullptr || RPG_CharacterMovementComponent->IsFalling()) return;
 
 	CharacterCombatComponent->StartAttack();
 }
 
+void ARPG_Character::Interact(const FInputActionValue& Value)
+{
+	if (OverlappingActor == nullptr) return;
+
+	if (ABasePickup* Chest = Cast<ABasePickup>(OverlappingActor))
+	{
+		Chest->ExecuteInteraction();
+	}
+}
+
 float ARPG_Character::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (HealthComponent == nullptr) return 0.f;
+	if (HealthComponent == nullptr || HealthComponent->IsDead()) return 0.f;
 
 	float DamageTaken = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	HealthComponent->ReceiveDamage(DamageTaken);
+	
+	PlayAnimMontage(HitReactMontage);
+
 	if (HealthComponent->IsDead())
 	{
-		RespawnPlayer();
+		PlayAnimMontage(DeathMontage);
+
+		// Delay before respawning the player
+		FLatentActionInfo LatentActionInfo;
+		LatentActionInfo.CallbackTarget = this;
+		LatentActionInfo.ExecutionFunction = "RespawnPlayer";
+		LatentActionInfo.Linkage = 1;
+		UKismetSystemLibrary::Delay(this, 4.f, LatentActionInfo);
 	}
 
 	return DamageTaken;
@@ -271,5 +298,16 @@ void ARPG_Character::OnWeaponHitboxBeginOverlap(UPrimitiveComponent* OverlappedC
 												 OtherActor->GetActorLocation(),
 												 OtherActor->GetActorRotation(),
 												 true);
+	}
+}
+
+void ARPG_Character::PauseAnimation(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == FName("StopAnimation"))
+	{
+		GetMesh()->bPauseAnims = true;
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		bUseControllerRotationYaw = false;
 	}
 }

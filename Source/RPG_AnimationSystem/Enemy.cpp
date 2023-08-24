@@ -41,31 +41,32 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	float ActualAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	EnemyHealthComponent->ReceiveDamage(ActualAmount);
 
-	if (UAnimInstance* EnemyAnimInstance = GetMesh()->GetAnimInstance())
+	PlayAnimMontage(HitReactMontage);
+
+	if (EnemyHealthComponent->IsDead())
 	{
-		EnemyAnimInstance->Montage_Play(HitReactMontage);
-		if (EnemyHealthComponent->IsDead())
-		{
-			EnemyAnimInstance->Montage_Play(DeathMontage);
-			UpdateSkeletonObjective(EventInstigator);
-		}
+		PlayAnimMontage(DeathMontage);
+		UpdateSkeletonObjective(EventInstigator);
 	}
 	return ActualAmount;
 }
 
 void AEnemy::StopPlayingAnimation(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
-	GetMesh()->bPauseAnims = true;
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (NotifyName == FName("StopAnimation"))
+	{
+		GetMesh()->bPauseAnims = true;
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// Delay a few seconds before destroying the actor
-	FLatentActionInfo LatentActionInfo;
-	LatentActionInfo.CallbackTarget = this;
-	LatentActionInfo.ExecutionFunction = "DestroyActor";
-	LatentActionInfo.Linkage = 1;
+		// Delay a few seconds before destroying the actor
+		FLatentActionInfo LatentActionInfo;
+		LatentActionInfo.CallbackTarget = this;
+		LatentActionInfo.ExecutionFunction = "DestroyActor";
+		LatentActionInfo.Linkage = 1;
 
-	UKismetSystemLibrary::Delay(this, 3.f,LatentActionInfo);
+		UKismetSystemLibrary::Delay(this, 3.f, LatentActionInfo);
+	}
 }
 
 void AEnemy::DestroyActor()

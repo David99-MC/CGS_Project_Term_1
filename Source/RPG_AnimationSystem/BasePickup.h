@@ -6,21 +6,48 @@
 #include "GameFramework/Actor.h"
 #include "BasePickup.generated.h"
 
+class USphereComponent;
+class ARPG_PlayerController;
+
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ABasePickup : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABasePickup();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void ExecuteInteraction();
+
+protected:
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	virtual void OnTriggerAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void OnTriggerAreaEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void OpenChestLid(float DeltaTime);
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	USphereComponent* TriggerArea;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent* BaseMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent* AddOnMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UParticleSystemComponent* ParticleEffect;
+
+	ARPG_PlayerController* PlayerController;
+
+protected:
+	bool bShouldStartOpen = false;
+
+	
 };

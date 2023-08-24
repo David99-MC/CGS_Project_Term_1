@@ -48,6 +48,9 @@ class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
 	UPROPERTY(EditAnywhere, category = Input)
 	UInputAction* AttackAction;
 
+	UPROPERTY(EditAnywhere, category = Input)
+	UInputAction* InteractAction;
+
 public:
 	ARPG_Character(const FObjectInitializer& ObjectInitializer);
 
@@ -75,12 +78,16 @@ protected:
 
 	void Attack(const FInputActionValue& Value);
 
+	void Interact(const FInputActionValue& Value);
+
+	UFUNCTION(BlueprintCallable)
 	void RespawnPlayer();
 
 	UFUNCTION()
 	void OnWeaponHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-
+	UFUNCTION()
+	void PauseAnimation(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 public:	
 	virtual void Tick(float DeltaTime) override;
 
@@ -110,6 +117,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat)
 	UBoxComponent* WeaponHitbox;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Animation)
+	UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Animation)
+	UAnimMontage* DeathMontage;
+
 	/** Locomotion Variables */
 	UPROPERTY(EditAnywhere, category = Movement)
 	float JogSpeed = 400.f;
@@ -123,6 +136,9 @@ public:
 	bool bIsSprinting;
 
 	bool bCanTurn = true;
+
+	UPROPERTY(VisibleAnywhere)
+	AActor* OverlappingActor;
 
 
 };

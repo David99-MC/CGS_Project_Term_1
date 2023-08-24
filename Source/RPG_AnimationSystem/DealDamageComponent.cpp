@@ -18,7 +18,6 @@ UDealDamageComponent::UDealDamageComponent()
 
 }
 
-
 // Called when the game starts
 void UDealDamageComponent::BeginPlay()
 {

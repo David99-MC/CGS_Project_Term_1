@@ -33,11 +33,20 @@ public:
 	void UpdateObjectiveHUD(bool bReversed);
 
 	void DecreaseObjectiveSkeleton();
-#pragma endregion
-
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateObjectiveText();
+	void UpdateSkeletonObjectiveText();
+
+	bool bHasFinishedSkeletonObjective = false;
+
+#pragma endregion
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateGetKeyObjectiveText();
+
+	void InteractWithChestObjective();
+
+	void PlayHUDFadeAnimation(FName CallBackName);
 
 public:
 	UPROPERTY(EditDefaultsOnly, category = Widgets)

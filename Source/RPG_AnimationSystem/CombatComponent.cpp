@@ -50,7 +50,7 @@ void UCombatComponent::ShouldMontageStop(FName NotifyName, const FBranchingPoint
 	if (AttackIndex < 0)
 	{
 		OwningCharacterAnimInstance->Montage_Stop(.25f, AttackComboMontage);
-		AttackIndex = 0;
+		AttackIndex = 0; // reset attack count
 	}
 
 }

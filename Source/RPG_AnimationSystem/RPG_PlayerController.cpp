@@ -48,26 +48,46 @@ void ARPG_PlayerController::DecreaseObjectiveSkeleton()
 
 	if (ObjectiveSkeletons.IsEmpty())
 	{
-		// fade out
-		UpdateObjectiveHUD(true);
-		
-		// Set the text and fade in
-		FLatentActionInfo LatentActionInfo1;
-		LatentActionInfo1.CallbackTarget = this;
-		LatentActionInfo1.ExecutionFunction = "UpdateObjectiveText";
-		LatentActionInfo1.Linkage = 1;
-		UKismetSystemLibrary::Delay(this, 1.f, LatentActionInfo1);
-
+		bHasFinishedSkeletonObjective = true;
+		PlayHUDFadeAnimation("UpdateSkeletonObjectiveText");
 	}
 }
 
-void ARPG_PlayerController::UpdateObjectiveText()
+void ARPG_PlayerController::InteractWithChestObjective()
+{
+	if (!bHasFinishedSkeletonObjective) return;
+	PlayHUDFadeAnimation("UpdateGetKeyObjectiveText");
+}
+
+void ARPG_PlayerController::UpdateSkeletonObjectiveText()
 {
 	if (UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD))
 	{
 		ObjectiveHUDOverlay->SetObjectiveText(FText::FromString("Get the key up from the ladder"));
 	}
 	UpdateObjectiveHUD(false);
+}
+
+void ARPG_PlayerController::UpdateGetKeyObjectiveText()
+{
+	if (UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD))
+	{
+		ObjectiveHUDOverlay->SetObjectiveText(FText::FromString("Open the gates with the key"));
+	}
+	UpdateObjectiveHUD(false);
+}
+
+void ARPG_PlayerController::PlayHUDFadeAnimation(FName CallBackName)
+{
+	// fade out
+	UpdateObjectiveHUD(true);
+
+	// Set the text and fade in
+	FLatentActionInfo LatentActionInfo1;
+	LatentActionInfo1.CallbackTarget = this;
+	LatentActionInfo1.ExecutionFunction = CallBackName;
+	LatentActionInfo1.Linkage = 1;
+	UKismetSystemLibrary::Delay(this, 1.f, LatentActionInfo1);
 }
 
 
