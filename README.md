@@ -1,5 +1,5 @@
-# CGS_Project_Term_1
-# This repo encapsulates everything I learned from CGS Term 1 :) Details to be added as I learn
+# RPG_AnimationSystem
+# This project is used to further extend my gameplay programming knowledge in an RPG :) Details to be added as I learn
 
 # Door Problems:
 - Used Dot Product to determine whether the Character is in front or behind the door.
