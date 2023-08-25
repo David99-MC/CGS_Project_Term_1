@@ -24,7 +24,6 @@ void ARPG_PlayerController::DisplayHealthBar()
 	if (HUDOverlay == nullptr) return;
 
 	HUDOverlay->AddToViewport();
-
 }
 
 void ARPG_PlayerController::DisplayObjectiveHUD()
@@ -55,26 +54,29 @@ void ARPG_PlayerController::DecreaseObjectiveSkeleton()
 
 void ARPG_PlayerController::InteractWithChestObjective()
 {
-	if (!bHasFinishedSkeletonObjective) return;
+	bHasFinishedGetKeyObjective = true;
 	PlayHUDFadeAnimation("UpdateGetKeyObjectiveText");
+}
+
+void ARPG_PlayerController::InteractWithGatesObjective()
+{
+	bHasFinishedPickupObjective = true;
+	PlayHUDFadeAnimation("UpdatePickupObjectiveText");
 }
 
 void ARPG_PlayerController::UpdateSkeletonObjectiveText()
 {
-	if (UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD))
-	{
-		ObjectiveHUDOverlay->SetObjectiveText(FText::FromString("Get the key up from the ladder"));
-	}
-	UpdateObjectiveHUD(false);
+	UpdateObjectiveText(FText::FromString("Get the key up from the ladder"));
 }
 
 void ARPG_PlayerController::UpdateGetKeyObjectiveText()
 {
-	if (UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD))
-	{
-		ObjectiveHUDOverlay->SetObjectiveText(FText::FromString("Open the gates with the key"));
-	}
-	UpdateObjectiveHUD(false);
+	UpdateObjectiveText(FText::FromString("Open the gates with the key"));
+}
+
+void ARPG_PlayerController::UpdatePickupObjectiveText()
+{
+	UpdateObjectiveText(FText::FromString("Now HURRY and Pick up the Power Stone!"));
 }
 
 void ARPG_PlayerController::PlayHUDFadeAnimation(FName CallBackName)
@@ -88,6 +90,15 @@ void ARPG_PlayerController::PlayHUDFadeAnimation(FName CallBackName)
 	LatentActionInfo1.ExecutionFunction = CallBackName;
 	LatentActionInfo1.Linkage = 1;
 	UKismetSystemLibrary::Delay(this, 1.f, LatentActionInfo1);
+}
+
+void ARPG_PlayerController::UpdateObjectiveText(FText TextToSet)
+{
+	if (UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD))
+	{
+		ObjectiveHUDOverlay->SetObjectiveText(TextToSet);
+	}
+	UpdateObjectiveHUD(false); // Fade in with the newly set Objective Text
 }
 
 

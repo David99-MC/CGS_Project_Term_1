@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/TimelineComponent.h"
+
 #include "BasePickup.generated.h"
 
-class USphereComponent;
+class UBoxComponent;
 class ARPG_PlayerController;
+class ARPG_Character;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ABasePickup : public AActor
@@ -19,7 +22,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-	void ExecuteInteraction();
+	virtual void ExecuteInteraction();
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,24 +33,21 @@ protected:
 	UFUNCTION()
 	virtual void OnTriggerAreaEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void OpenChestLid(float DeltaTime);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	USphereComponent* TriggerArea;
+	UBoxComponent* InteractArea;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* BaseMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* AddOnMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent* ParticleEffect;
 
 	ARPG_PlayerController* PlayerController;
 
-protected:
-	bool bShouldStartOpen = false;
+	// Timeline and curve for interpolation
+	FTimeline Timeline;
 
-	
+	ARPG_Character* OverlappingPlayer = nullptr;
+
 };

@@ -41,12 +41,31 @@ public:
 
 #pragma endregion
 
+#pragma region Get Key Objective
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateGetKeyObjectiveText();
 
 	void InteractWithChestObjective();
 
+	bool bHasFinishedGetKeyObjective = false;
+
+#pragma endregion
+
+#pragma region Final Pickup Objective
+
+	UFUNCTION(BlueprintCallable)
+	void UpdatePickupObjectiveText();
+
+	void InteractWithGatesObjective();
+
+	bool bHasFinishedPickupObjective = false;
+
+#pragma endregion
+
 	void PlayHUDFadeAnimation(FName CallBackName);
+
+	void UpdateObjectiveText(FText TextToSet);
 
 public:
 	UPROPERTY(EditDefaultsOnly, category = Widgets)

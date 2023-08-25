@@ -2,7 +2,7 @@
 
 
 #include "BasePickup.h"
-#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "RPG_Character.h"
 #include "RPG_PlayerController.h"
@@ -12,14 +12,11 @@ ABasePickup::ABasePickup()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	TriggerArea = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger Area"));
-	SetRootComponent(TriggerArea);
+	InteractArea = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger Area"));
+	SetRootComponent(InteractArea);
 
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Base Mesh"));
 	BaseMesh->SetupAttachment(RootComponent);
-
-	AddOnMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Add-on Mesh"));
-	AddOnMesh->SetupAttachment(RootComponent);
 
 	ParticleEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle Effect"));
 	ParticleEffect->SetupAttachment(RootComponent);
@@ -28,27 +25,20 @@ ABasePickup::ABasePickup()
 void ABasePickup::BeginPlay()
 {
 	Super::BeginPlay();
-	TriggerArea->OnComponentBeginOverlap.AddDynamic(this, &ABasePickup::OnTriggerAreaBeginOverlap);
-	TriggerArea->OnComponentEndOverlap.AddDynamic(this, &ABasePickup::OnTriggerAreaEndOverlap);
+	InteractArea->OnComponentBeginOverlap.AddDynamic(this, &ABasePickup::OnTriggerAreaBeginOverlap);
+	InteractArea->OnComponentEndOverlap.AddDynamic(this, &ABasePickup::OnTriggerAreaEndOverlap);
 }
 
 void ABasePickup::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (bShouldStartOpen)
-	{
-		OpenChestLid(DeltaTime);
-	}
+	Timeline.TickTimeline(DeltaTime);
 }
 
 void ABasePickup::ExecuteInteraction()
 {
-	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, TEXT("Interaction Executed!"));
 	if (PlayerController == nullptr) return;
-
-	bShouldStartOpen = true;
-
-	PlayerController->InteractWithChestObjective();
+	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, TEXT("Interaction Executed!"));
 }
 
 
@@ -57,6 +47,7 @@ void ABasePickup::OnTriggerAreaBeginOverlap(UPrimitiveComponent* OverlappedCompo
 	if (ARPG_Character* Player = Cast<ARPG_Character>(OtherActor))
 	{
 		Player->OverlappingActor = this;
+		OverlappingPlayer = Player;
 		PlayerController = Cast<ARPG_PlayerController>(Player->GetController());
 	}
 }
@@ -66,15 +57,9 @@ void ABasePickup::OnTriggerAreaEndOverlap(UPrimitiveComponent* OverlappedCompone
 	if (ARPG_Character* Player = Cast<ARPG_Character>(OtherActor))
 	{
 		Player->OverlappingActor = nullptr;
+		OverlappingPlayer = nullptr;
 	}
 }
 
-void ABasePickup::OpenChestLid(float DeltaTime)
-{
-	FRotator TargetRotation(0.f, 0.f, -70.f);
-	FRotator InterpRotation =
-		FMath::RInterpTo(AddOnMesh->GetComponentRotation(), TargetRotation, DeltaTime, 5.f);
 
-	AddOnMesh->SetWorldRotation(InterpRotation);
-}
 
