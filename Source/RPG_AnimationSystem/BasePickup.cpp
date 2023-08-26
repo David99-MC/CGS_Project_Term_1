@@ -38,7 +38,6 @@ void ABasePickup::Tick(float DeltaTime)
 void ABasePickup::ExecuteInteraction()
 {
 	if (PlayerController == nullptr) return;
-	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, TEXT("Interaction Executed!"));
 }
 
 
