@@ -5,7 +5,12 @@
 #include "Components/TextBlock.h"
 #include "Components/PanelWidget.h"
 
-void UObjectiveHUD::SetObjectiveText(FText TextToSet)
+void UObjectiveHUD::SetObjectiveNameText(FText TextToSet)
 {
 	ObjectiveNameText->SetText(TextToSet);
+}
+
+void UObjectiveHUD::SetObjectiveText(FText TextToSet)
+{
+	ObjectiveText->SetText(TextToSet);
 }

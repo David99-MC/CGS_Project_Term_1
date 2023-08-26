@@ -38,6 +38,7 @@ void ARPG_PlayerController::DisplayObjectiveHUD()
 	ObjectiveHUD->AddToViewport();
 }
 
+// Interaction Objective
 void ARPG_PlayerController::DecreaseObjectiveSkeleton()
 {
 	if (ObjectiveSkeletons.IsEmpty()) return;
@@ -60,29 +61,47 @@ void ARPG_PlayerController::InteractWithChestObjective()
 
 void ARPG_PlayerController::InteractWithGatesObjective()
 {
-	bHasFinishedPickupObjective = true;
-	PlayHUDFadeAnimation("UpdatePickupObjectiveText");
+	bHasFinishedOpenGatesObjective = true;
+	PlayHUDFadeAnimation("UpdateOpenGatesObjectiveText");
 }
 
+void ARPG_PlayerController::InteractWithPowerStoneObjective()
+{
+	bHasFinishedPickupPowerStoneObjective = true;
+	PlayHUDFadeAnimation("UpdatePickupPowerStoneObjectiveText");
+}
+
+// Updating Objective Text
 void ARPG_PlayerController::UpdateSkeletonObjectiveText()
 {
-	UpdateObjectiveText(FText::FromString("Get the key up from the ladder"));
+	UpdateObjectiveNameText(FText::FromString("Get the key up from the ladder"));
 }
 
 void ARPG_PlayerController::UpdateGetKeyObjectiveText()
 {
-	UpdateObjectiveText(FText::FromString("Open the gates with the key"));
+	UpdateObjectiveNameText(FText::FromString("Open the gates with the key"));
 }
 
-void ARPG_PlayerController::UpdatePickupObjectiveText()
+void ARPG_PlayerController::UpdateOpenGatesObjectiveText()
 {
-	UpdateObjectiveText(FText::FromString("Now HURRY and Pick up the Power Stone!"));
+	UpdateObjectiveNameText(FText::FromString("Now HURRY and Pick up the Power Stone!"));
+}
+
+void ARPG_PlayerController::UpdatePickupPowerStoneObjectiveText()
+{
+	UpdateObjectiveNameText(FText::FromString("CONGRATULATIONS! You WON"));
 }
 
 void ARPG_PlayerController::PlayHUDFadeAnimation(FName CallBackName)
 {
 	// fade out
 	UpdateObjectiveHUD(true);
+
+	UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD);
+	if (bHasFinishedPickupPowerStoneObjective && ObjectiveHUDOverlay)
+	{
+		ObjectiveHUDOverlay->SetObjectiveText(FText::FromString(""));
+	}
 
 	// Set the text and fade in
 	FLatentActionInfo LatentActionInfo1;
@@ -92,13 +111,40 @@ void ARPG_PlayerController::PlayHUDFadeAnimation(FName CallBackName)
 	UKismetSystemLibrary::Delay(this, 1.f, LatentActionInfo1);
 }
 
-void ARPG_PlayerController::UpdateObjectiveText(FText TextToSet)
+void ARPG_PlayerController::UpdateObjectiveNameText(FText TextToSet)
 {
 	if (UObjectiveHUD* ObjectiveHUDOverlay = Cast<UObjectiveHUD>(ObjectiveHUD))
 	{
-		ObjectiveHUDOverlay->SetObjectiveText(TextToSet);
+		ObjectiveHUDOverlay->SetObjectiveNameText(TextToSet);
 	}
 	UpdateObjectiveHUD(false); // Fade in with the newly set Objective Text
+
+	SetGamePause(bHasFinishedPickupPowerStoneObjective);
+}
+
+void ARPG_PlayerController::SetGamePause(bool bCanPause)
+{
+	if (bCanPause)
+	{
+		if (PlayAgainHUDClass)
+		{
+			PlayAgainHUD = CreateWidget<UUserWidget>(this, PlayAgainHUDClass);
+			PlayAgainHUD->AddToViewport();
+			SetPause(true);
+			SetShowMouseCursor(true);
+			SetInputMode(FInputModeUIOnly());
+		}
+	}
+	else
+	{
+		if (PlayAgainHUD && PlayAgainHUD->IsInViewport())
+		{
+			PlayAgainHUD->RemoveFromParent();
+			SetPause(false);
+			SetShowMouseCursor(false);
+			SetInputMode(FInputModeGameOnly());
+		}
+	}
 }
 
 

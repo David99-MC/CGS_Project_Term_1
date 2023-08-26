@@ -18,6 +18,7 @@ class UHealthComponent;
 class UBoxComponent;
 class UStaticMeshComponent;
 class UCombatComponent;
+class UDamagedCameraShake;
 
 UCLASS()
 class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
@@ -51,6 +52,9 @@ class RPG_ANIMATIONSYSTEM_API ARPG_Character : public ACharacter
 	UPROPERTY(EditAnywhere, category = Input)
 	UInputAction* InteractAction;
 
+	UPROPERTY(EditAnywhere, category = Input)
+	UInputAction* PauseGameAction;
+
 public:
 	ARPG_Character(const FObjectInitializer& ObjectInitializer);
 
@@ -80,6 +84,8 @@ protected:
 
 	void Interact(const FInputActionValue& Value);
 
+	void PauseGame(const FInputActionValue& Value);
+
 	UFUNCTION(BlueprintCallable)
 	void RespawnPlayer();
 
@@ -92,6 +98,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// true means transferring the weapon to the back, or back to the hand if otherwise
+	void ChangeWeaponSocket(bool bToTheBack);
 
 public:
 	/* Essential Components */
@@ -123,6 +132,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Animation)
 	UAnimMontage* DeathMontage;
 
+	UPROPERTY(EditDefaultsOnly, category = Combat)
+	TSubclassOf<UDamagedCameraShake> DamagedCameraShakeClass;
+
 	/** Locomotion Variables */
 	UPROPERTY(EditAnywhere, category = Movement)
 	float JogSpeed = 400.f;
@@ -140,5 +152,5 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	AActor* OverlappingActor;
 
-
+	bool bIsGamePaused = false;
 };

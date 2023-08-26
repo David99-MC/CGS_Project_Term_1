@@ -35,7 +35,7 @@ void AInteractiveGates::ExecuteInteraction()
 	if (!PlayerController->bHasFinishedGetKeyObjective)
 		return;
 
-	if (!PlayerController->bHasFinishedPickupObjective)
+	if (!PlayerController->bHasFinishedOpenGatesObjective)
 		PlayerController->InteractWithGatesObjective();
 
 	// prevent openning the door while the player's back is facing the door

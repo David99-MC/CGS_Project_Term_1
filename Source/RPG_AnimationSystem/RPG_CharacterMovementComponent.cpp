@@ -204,7 +204,7 @@ bool URPG_CharacterMovementComponent::ShouldStopClimbing()
 bool URPG_CharacterMovementComponent::HasReachedFloor()
 {
 	FVector DownVector = -UpdatedComponent->GetUpVector();
-	FVector StartOffset = DownVector * 50.f;
+	FVector StartOffset = DownVector * 80.f;
 	FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
 	FVector End = Start + DownVector;
 
@@ -416,6 +416,10 @@ void URPG_CharacterMovementComponent::StartClimbing()
 void URPG_CharacterMovementComponent::StopClimbing()
 {
 	SetMovementMode(EMovementMode::MOVE_Falling);
+	if (ARPG_Character* Player = Cast<ARPG_Character>(CharacterOwner))
+	{
+		Player->ChangeWeaponSocket(false);
+	}
 }
 
 void URPG_CharacterMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
@@ -432,11 +436,19 @@ void URPG_CharacterMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage,
 	{
 		StartClimbing();
 		StopMovementImmediately(); // Disable any excess Velocity from RootMotion anim
+		if (ARPG_Character* Player = Cast<ARPG_Character>(CharacterOwner))
+		{
+			Player->ChangeWeaponSocket(true);
+		}
 	}
 
 	if (Montage == ClimbToTopMontage)
 	{
 		SetMovementMode(EMovementMode::MOVE_Walking);
+		if (ARPG_Character* Player = Cast<ARPG_Character>(CharacterOwner))
+		{
+			Player->ChangeWeaponSocket(false);
+		}
 	}
 	
 }

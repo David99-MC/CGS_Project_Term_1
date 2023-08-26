@@ -16,11 +16,17 @@ class RPG_ANIMATIONSYSTEM_API UObjectiveHUD : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
+	void SetObjectiveNameText(FText TextToSet);
+
+	UFUNCTION(BlueprintCallable)
 	void SetObjectiveText(FText TextToSet);
 
 public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	UTextBlock* ObjectiveNameText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UTextBlock* ObjectiveText;
 
 	
 };

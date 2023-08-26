@@ -52,20 +52,36 @@ public:
 
 #pragma endregion
 
-#pragma region Final Pickup Objective
+#pragma region Open Gates Objective
 
 	UFUNCTION(BlueprintCallable)
-	void UpdatePickupObjectiveText();
+	void UpdateOpenGatesObjectiveText();
 
 	void InteractWithGatesObjective();
 
-	bool bHasFinishedPickupObjective = false;
+	bool bHasFinishedOpenGatesObjective = false;
 
 #pragma endregion
 
+#pragma region Final Pickup Power Stone Objective
+
+	UFUNCTION(BlueprintCallable)
+	void UpdatePickupPowerStoneObjectiveText();
+
+	void InteractWithPowerStoneObjective();
+
+	bool bHasFinishedPickupPowerStoneObjective = false;
+
+#pragma endregion
+
+	// Parameter: Name of the Callback in String
 	void PlayHUDFadeAnimation(FName CallBackName);
 
-	void UpdateObjectiveText(FText TextToSet);
+	void UpdateObjectiveNameText(FText TextToSet);
+
+	// Pause the game and ask whether the player want to continue playing or play again
+	UFUNCTION(BlueprintCallable)
+	void SetGamePause(bool bCanPause);
 
 public:
 	UPROPERTY(EditDefaultsOnly, category = Widgets)
@@ -79,6 +95,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	UUserWidget* ObjectiveHUD;
+
+	UPROPERTY(EditDefaultsOnly, category = Widgets)
+	TSubclassOf<UUserWidget> PlayAgainHUDClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	UUserWidget* PlayAgainHUD;
 
 	TArray<AActor*> ObjectiveSkeletons;
 };

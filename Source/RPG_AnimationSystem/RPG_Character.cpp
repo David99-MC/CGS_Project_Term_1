@@ -27,6 +27,8 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "BasePickup.h"
+#include "RPG_PlayerController.h"
+#include "DamagedCameraShake.h"
 
 // Sets default values
 ARPG_Character::ARPG_Character(const FObjectInitializer& ObjectInitializer)
@@ -122,6 +124,8 @@ void ARPG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPG_Character::Attack);
 		
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPG_Character::Interact);
+	
+		EnhancedInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ARPG_Character::PauseGame);
 	}
 	
 }
@@ -231,7 +235,9 @@ void ARPG_Character::Climb(const FInputActionValue& Value)
 
 void ARPG_Character::Attack(const FInputActionValue& Value)
 {
-	if (CharacterCombatComponent == nullptr || RPG_CharacterMovementComponent->IsFalling()) return;
+	if (CharacterCombatComponent == nullptr || 
+		RPG_CharacterMovementComponent->IsFalling() ||
+		RPG_CharacterMovementComponent->IsClimbing()) return;
 
 	CharacterCombatComponent->StartAttack();
 }
@@ -246,6 +252,19 @@ void ARPG_Character::Interact(const FInputActionValue& Value)
 	}
 }
 
+void ARPG_Character::PauseGame(const FInputActionValue& Value)
+{
+	ARPG_PlayerController* PlayerController = Cast<ARPG_PlayerController>(Controller);
+	if (PlayerController == nullptr) return;
+
+	if (!bIsGamePaused)
+	{
+		bIsGamePaused = false;
+		PlayerController->SetGamePause(true);
+	}
+	
+}
+
 float ARPG_Character::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (HealthComponent == nullptr || HealthComponent->IsDead()) return 0.f;
@@ -254,11 +273,19 @@ float ARPG_Character::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	HealthComponent->ReceiveDamage(DamageTaken);
 	
 	PlayAnimMontage(HitReactMontage);
-
+	if (DamagedCameraShakeClass)
+	{
+		UGameplayStatics::PlayWorldCameraShake(this,
+											   DamagedCameraShakeClass,
+											   GetActorLocation(),
+											   500.f,
+											   500.f);
+	}
+	
 	if (HealthComponent->IsDead())
 	{
 		PlayAnimMontage(DeathMontage);
-
+		bUseControllerRotationYaw = false; // Prevent the character still receiving input when died
 		// Delay before respawning the player
 		FLatentActionInfo LatentActionInfo;
 		LatentActionInfo.CallbackTarget = this;
@@ -308,6 +335,21 @@ void ARPG_Character::PauseAnimation(FName NotifyName, const FBranchingPointNotif
 		GetMesh()->bPauseAnims = true;
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		bUseControllerRotationYaw = false;
+	}
+}
+
+void ARPG_Character::ChangeWeaponSocket(bool bToTheBack)
+{
+	if (bToTheBack)
+	{
+		Weapon->AttachToComponent(GetMesh(), 
+								  FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+								  "Weapon_Store");
+	}
+	else
+	{
+		Weapon->AttachToComponent(GetMesh(), 
+								  FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+								  "Weapon_RSocket");
 	}
 }
