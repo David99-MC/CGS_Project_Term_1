@@ -78,10 +78,6 @@ public:
 	// Getting an average Vector each for SurfaceLocations and SurfaceNormals
 	void ProcessClimbableSurfaces();
 	
-	/* 
-		We need FQuat instead of FRotator because SafeMoveUpdatedComponent()
-		requires an FQuat for its parameter
-	*/
 	FQuat GetClimbRotation(float DeltaTime); 
 
 	FORCEINLINE FVector GetClimbableSurfaceNormal() { return CurrentClimbableSurfaceNormal; }
@@ -113,8 +109,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
 	float MaxBreakClimbDeceleration = 400.f;
 
+	// Use when snapping movement to the surface
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
-	float MaxClimbSpeed = 100.f; // Use when snapping movement to the surface
+	float MaxClimbSpeed = 100.f; 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character Movement: Climbing")
 	float MaxClimbAcceleration = 300.f;

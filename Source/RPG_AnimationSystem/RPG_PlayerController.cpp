@@ -89,7 +89,7 @@ void ARPG_PlayerController::UpdateOpenGatesObjectiveText()
 
 void ARPG_PlayerController::UpdatePickupPowerStoneObjectiveText()
 {
-	UpdateObjectiveNameText(FText::FromString("CONGRATULATIONS! You WON"));
+	UpdateObjectiveNameText(FText::FromString("CONGRATULATIONS! YOU WON"));
 }
 
 void ARPG_PlayerController::PlayHUDFadeAnimation(FName CallBackName)

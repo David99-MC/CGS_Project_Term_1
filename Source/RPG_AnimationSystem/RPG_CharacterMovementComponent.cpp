@@ -117,7 +117,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	const FVector Adjusted = Velocity * deltaTime;
 	FHitResult Hit(1.f);
 
-	//Handle climb rotation
+	//Getting the correct rotation, which should point towards the surface, for the character
 	FQuat ClimbRotation = GetClimbRotation(deltaTime);
 	SafeMoveUpdatedComponent(Adjusted, ClimbRotation, true, Hit);
 
@@ -196,7 +196,6 @@ bool URPG_CharacterMovementComponent::ShouldStopClimbing()
 
 	float DotResult = FVector::DotProduct(CurrentClimbableSurfaceNormal, FVector::UpVector);
 	float DeltaDegree = FMath::RadiansToDegrees(FMath::Acos(DotResult)); //Acos() returns radian
-	//GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Emerald, FString::Printf(TEXT("DeltaDegree: %f"), DeltaDegree));
 
 	return DeltaDegree < StopClimbingDegree;
 }
@@ -284,7 +283,7 @@ void URPG_CharacterMovementComponent::SnapMovementToClimbableSurfaces(float Delt
 	FVector ProjectedCharacterToSurface =
 		(CurrentClimbableSurfaceLocation - ComponentLocation).ProjectOnTo(ComponentForward);
 
-	// Inverse the CurrentClimbableSurfaceNormal since we to snap to its oppsite direction, 
+	// Inverse the CurrentClimbableSurfaceNormal since we wants its oppsite direction, 
 	// which points towards the surface
 	FVector SnapVector = -CurrentClimbableSurfaceNormal * ProjectedCharacterToSurface.Length();
 
