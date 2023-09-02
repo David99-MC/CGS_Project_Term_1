@@ -12,4 +12,4 @@
 ==> *FIXED*: instead of applying the Dot product with the Forward Vector of both the Player and the door, calculate the Direction Vector between the Player and the door, THEN, apply Dot product with the Direction Vector and the door's Forward (Right if its coordinate is pointing wrong). The Direction Vector will correctly determine if the Player is in front or behind with regard to the door's Forward Vector.
 
 # The Climbing Mechanics: 
-- Please follow [this link](https://buulam.my.canva.site/contents-of-rpg-demo)https://buulam.my.canva.site/contents-of-rpg-demo to learn more in depth
+- Please follow [this link](https://buulam.my.canva.site/contents-of-rpg-demo) to learn more in depth
