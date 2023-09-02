@@ -1,5 +1,5 @@
 # RPG_AnimationSystem
-# This project is used to further extend my gameplay programming knowledge in an RPG :) Details to be added as I learn
+# This project is used to further extend my gameplay programming knowledge in an RPG :) 
 
 # Door Problems:
 - Used Dot Product to determine whether the Character is in front or behind the door.
