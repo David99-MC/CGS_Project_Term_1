@@ -1,5 +1,12 @@
 # RPG_AnimationSystem
 # This project is used to further extend my gameplay programming knowledge in an RPG :) 
+# Input instructions: 
+- Movement: WASD
+- Sprint: Shift
+- Jump: Space bar
+- Crouch: Ctrl
+- Start/Stop climbing: F
+- Attack: Left mouse button
 
 # Door Problems:
 - Used Dot Product to determine whether the Character is in front or behind the door.
