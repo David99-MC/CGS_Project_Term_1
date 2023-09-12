@@ -94,7 +94,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 		return;
 	}
 
-	/*Process all the climbable surfaces info*/
+	// First step: Tracing and processing surface information
 	TraceClimbableSurfaces();
 	ProcessClimbableSurfaces();
 
@@ -117,7 +117,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 	const FVector Adjusted = Velocity * deltaTime;
 	FHitResult Hit(1.f);
 
-	//Getting the correct rotation, which should point towards the surface, for the character
+	// Second step: handling the character rotation
 	FQuat ClimbRotation = GetClimbRotation(deltaTime);
 	SafeMoveUpdatedComponent(Adjusted, ClimbRotation, true, Hit);
 
@@ -133,7 +133,7 @@ void URPG_CharacterMovementComponent::PhysClimb(float deltaTime, int32 Iteration
 		Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / deltaTime;
 	}
 
-	/*Snap movement to climbable surfaces*/
+	// Third step: Making sure the character stick to the surface
 	SnapMovementToClimbableSurfaces(deltaTime);
 
 	if (HasReachedLedge())
@@ -271,8 +271,8 @@ FQuat URPG_CharacterMovementComponent::GetClimbRotation(float DeltaTime)
 	// Inverse the CurrentClimbableSurfaceNormal since we want a rotation that face towards the surface
 	FQuat TargetQuat = FRotationMatrix::MakeFromX(-CurrentClimbableSurfaceNormal).ToQuat();
 
-	return FMath::QInterpTo(CurrentQuat, TargetQuat, DeltaTime, 5.f); // InterpSpeed could be configurable
-
+	// InterpSpeed could be configurable
+	return FMath::QInterpTo(CurrentQuat, TargetQuat, DeltaTime, 5.f); 
 }
 
 void URPG_CharacterMovementComponent::SnapMovementToClimbableSurfaces(float DeltaTime)
@@ -281,15 +281,15 @@ void URPG_CharacterMovementComponent::SnapMovementToClimbableSurfaces(float Delt
 	FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
 
 	FVector ProjectedCharacterToSurface =
-		(CurrentClimbableSurfaceLocation - ComponentLocation).ProjectOnTo(ComponentForward);
+		(CurrentClimbableSurfaceLocation - ComponentLocation).ProjectOnTo(ComponentForward); 
 
 	// Inverse the CurrentClimbableSurfaceNormal since we wants its oppsite direction, 
 	// which points towards the surface
 	FVector SnapVector = -CurrentClimbableSurfaceNormal * ProjectedCharacterToSurface.Length();
-
+	
 	UpdatedComponent->MoveComponent(
-		SnapVector * DeltaTime * MaxClimbSpeed, 
-		UpdatedComponent->GetComponentQuat(), 
+		SnapVector * DeltaTime * MaxClimbSpeed,
+		UpdatedComponent->GetComponentQuat(),
 		true);
 }
 

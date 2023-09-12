@@ -33,6 +33,7 @@ protected:
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+	// Called every frame
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
 	virtual float GetMaxSpeed() const override;
